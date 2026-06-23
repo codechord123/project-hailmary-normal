@@ -9,12 +9,13 @@ interface Props {
   intro?: string
   bossName?: string
   bossEmoji?: string
+  /** 처치에 필요한 정답 수 (클수록 보스가 강함) */
+  hitsToKill?: number
   onClear: (result: { score: number; bestCombo: number }) => void
   onExit: () => void
 }
 
 const START_HEARTS = 3
-const HITS_TO_KILL = 4 // 정답 4번이면 보스 처치
 
 const shuffle = <T,>(arr: T[]): T[] => {
   const a = [...arr]
@@ -26,12 +27,13 @@ const shuffle = <T,>(arr: T[]): T[] => {
 }
 
 /**
- * 보스전 미니게임 (챕터 3 — 「인권이란 무엇일까」).
- * 문제를 맞혀 보스(편견 빌런)에게 데미지를 주고, 틀리면 반격당한다.
- * ContentProblem(객관식·OX) 풀을 순환 소비.
+ * 보스전 미니게임 (챕터 3 보스전 / 챕터 4 최종보스 공용).
+ * 문제를 맞혀 보스에게 데미지를 주고, 틀리면 반격당한다.
+ * ContentProblem(객관식·OX) 풀을 순환 소비. (matching 문제는 호출부에서 걸러 전달)
  */
 export function BossGame({
-  problems, title, intro, bossName = '편견 빌런', bossEmoji = '👾', onClear, onExit,
+  problems, title, intro, bossName = '편견 빌런', bossEmoji = '👾',
+  hitsToKill = 4, onClear, onExit,
 }: Props) {
   const queueRef = useRef<ContentProblem[]>([])
   const nextProblem = useCallback((): ContentProblem => {
@@ -43,7 +45,7 @@ export function BossGame({
     queueRef.current = shuffle(problems)
     return queueRef.current.shift()!
   })
-  const damage = Math.ceil(100 / HITS_TO_KILL)
+  const damage = Math.ceil(100 / Math.max(1, hitsToKill))
   const [bossHp, setBossHp] = useState(100)
   const [hearts, setHearts] = useState(START_HEARTS)
   const [combo, setCombo] = useState(0)

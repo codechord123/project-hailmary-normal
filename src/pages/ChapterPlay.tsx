@@ -56,6 +56,25 @@ export function ChapterPlay() {
     )
   }
 
+  if (chapter.mechanic === 'finalboss') {
+    // 단원 마무리 — 전체 챕터 문제(짝짓기 제외)를 모아 종합 결전
+    const allProblems = unit.chapters
+      .flatMap((c) => c.problems)
+      .filter((p) => p.kind !== 'matching')
+    return (
+      <BossGame
+        problems={allProblems}
+        title={chapter.title}
+        intro={chapter.intro}
+        bossName="권리침해 대마왕"
+        bossEmoji="🐉"
+        hitsToKill={6}
+        onClear={backToUnit}
+        onExit={backToUnit}
+      />
+    )
+  }
+
   // 아직 미니게임이 없는 챕터 → 카드 풀이로
   return <Navigate to={`/unit-preview?unit=${unit.id}&chapter=${chapter.id}`} replace />
 }
