@@ -1,7 +1,11 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
-import { useProgress, rowsForUnit } from '@/content/progress'
+import { useProgress, rowsForUnit, problemStatsForUnit } from '@/content/progress'
 import { isTeacherUnlocked } from '@/lib/teacherAuth'
+import type { ContentProblem } from '@/content/types'
+
+const label = (p: ContentProblem) =>
+  p.kind === 'ox' ? p.statement : p.prompt
 
 /** 교사용 — 한 단원의 학생별 진도(이 단말 기준). PIN 잠금은 /teacher 와 공유. */
 export function UnitTeacherDashboard() {
@@ -26,6 +30,15 @@ export function UnitTeacherDashboard() {
 
   const rows = rowsForUnit(data, unit.id)
   const total = unit.chapters.length
+
+  // 문항별 정답률 (취약 개념 = 정답률 낮은 순)
+  const stats = problemStatsForUnit(data, unit.id)
+  const allProblems = unit.chapters.flatMap((c) => c.problems)
+  const problemRows = allProblems
+    .map((p) => ({ p, s: stats[p.id] }))
+    .filter((r) => r.s && r.s.t > 0)
+    .map((r) => ({ ...r, acc: r.s!.c / r.s!.t }))
+    .sort((a, b) => a.acc - b.acc)
 
   const exportCsv = () => {
     const header = ['이름', '클리어챕터', `총${total}`, '별', '오답수', '타임어택최고', '끝없는최고']
@@ -91,6 +104,31 @@ export function UnitTeacherDashboard() {
               })}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* 문항별 정답률 — 취약 개념 진단 */}
+      {problemRows.length > 0 && (
+        <div className="mt-8">
+          <h2 className="text-lg font-bold text-white">📉 문항별 정답률 (어려워한 순)</h2>
+          <p className="text-xs text-white/50 mt-1">정답률이 낮은 문항 = 학생들이 어려워한 개념이에요.</p>
+          <div className="mt-3 flex flex-col gap-1.5">
+            {problemRows.slice(0, 20).map(({ p, s, acc }) => {
+              const pct = Math.round(acc * 100)
+              const color = pct < 50 ? 'bg-red-500' : pct < 75 ? 'bg-amber-500' : 'bg-emerald-500'
+              return (
+                <div key={p.id} className="flex items-center gap-2 text-sm">
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white/85 truncate">{label(p)}</div>
+                    <div className="h-1.5 mt-0.5 rounded-full bg-white/10 overflow-hidden">
+                      <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                  <span className="text-xs text-white/60 w-20 text-right">{pct}% ({s!.c}/{s!.t})</span>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>

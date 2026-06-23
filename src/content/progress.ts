@@ -14,6 +14,8 @@ export interface UnitProgress {
   achievements: string[]
   bestTimeAttack: number
   bestEndless: number
+  /** 문항별 시도 통계 (정답수 c / 전체 t) — 문항별 정답률용 */
+  attempts: Record<string, { c: number; t: number }>
 }
 
 export interface AchievementDef {
@@ -35,11 +37,11 @@ const KEY = 'platform-progress'
 /** 안정적 참조의 빈 진도 (selector 재렌더 방지용) */
 const EMPTY: UnitProgress = Object.freeze({
   xp: 0, cleared: [], stars: {}, wrongIds: [], achievements: [],
-  bestTimeAttack: 0, bestEndless: 0,
+  bestTimeAttack: 0, bestEndless: 0, attempts: {},
 }) as UnitProgress
 const empty = (): UnitProgress => ({
   xp: 0, cleared: [], stars: {}, wrongIds: [], achievements: [],
-  bestTimeAttack: 0, bestEndless: 0,
+  bestTimeAttack: 0, bestEndless: 0, attempts: {},
 })
 
 const loadAll = (): Record<string, UnitProgress> => {
@@ -85,13 +87,18 @@ export const useProgress = create<ProgressState>((set, getState) => {
     get: (unitId) => getState().data[keyFor(unitId)] ?? empty(),
 
     recordAnswer: (unitId, problemId, correct) =>
-      update(unitId, (p) => ({
-        ...p,
-        xp: p.xp + (correct ? 5 : 0),
-        wrongIds: correct
-          ? p.wrongIds.filter((id) => id !== problemId)
-          : p.wrongIds.includes(problemId) ? p.wrongIds : [...p.wrongIds, problemId],
-      })),
+      update(unitId, (p) => {
+        const att = p.attempts ?? {}
+        const prev = att[problemId] ?? { c: 0, t: 0 }
+        return {
+          ...p,
+          xp: p.xp + (correct ? 5 : 0),
+          wrongIds: correct
+            ? p.wrongIds.filter((id) => id !== problemId)
+            : p.wrongIds.includes(problemId) ? p.wrongIds : [...p.wrongIds, problemId],
+          attempts: { ...att, [problemId]: { c: prev.c + (correct ? 1 : 0), t: prev.t + 1 } },
+        }
+      }),
 
     recordClear: (unitId, chapterId, stars, totalChapters) =>
       update(unitId, (p) => {
@@ -138,6 +145,23 @@ export function useUnitProgress(unitId: string): UnitProgress {
 export interface StudentUnitRow {
   student: string
   progress: UnitProgress
+}
+
+/** 교사용 — 단원 전체 학생의 문항별 정답률 합산 (problemId -> 정답/시도) */
+export function problemStatsForUnit(
+  data: Record<string, UnitProgress>,
+  unitId: string,
+): Record<string, { c: number; t: number }> {
+  const suffix = `::${unitId}`
+  const agg: Record<string, { c: number; t: number }> = {}
+  for (const [k, p] of Object.entries(data)) {
+    if (!k.endsWith(suffix)) continue
+    for (const [pid, s] of Object.entries(p.attempts ?? {})) {
+      const a = agg[pid] ?? { c: 0, t: 0 }
+      agg[pid] = { c: a.c + s.c, t: a.t + s.t }
+    }
+  }
+  return agg
 }
 
 /** 교사용 — 한 단원을 학습한 모든 학생의 진도 (이 단말 기준) */
