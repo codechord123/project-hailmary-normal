@@ -11,6 +11,8 @@ interface Props {
   onClear: (result: { score: number; bestCombo: number }) => void
   /** 나가기 */
   onExit: () => void
+  /** 문제 채점 결과 기록 (오답 노트·XP용) */
+  onAnswer?: (problemId: string, correct: boolean) => void
 }
 
 interface Threat {
@@ -38,7 +40,7 @@ const shuffle = <T,>(arr: T[]): T[] => {
  * 레인으로 "혼란"이 밀려오고, 알맞은 보기로 막아 도시를 지킨다.
  * 분수 엔진과 독립적으로, ContentProblem(객관식·OX) 풀만 소비한다.
  */
-export function DefenseGame({ problems, title, intro, onClear, onExit }: Props) {
+export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer }: Props) {
   const goal = Math.max(3, problems.length)
   const queueRef = useRef<ContentProblem[]>([])
   const spawnThreat = useCallback(
@@ -118,6 +120,7 @@ export function DefenseGame({ problems, title, intro, onClear, onExit }: Props) 
     (laneIdx: number, correct: boolean) => {
       const lane = lanes[laneIdx]
       if (!lane) return
+      onAnswer?.(lane.problem.id, correct)
       if (correct) {
         setKillAnim(laneIdx)
         setFlash('hit')
@@ -144,7 +147,7 @@ export function DefenseGame({ problems, title, intro, onClear, onExit }: Props) 
         setMcqPick([])
       }
     },
-    [lanes, combo, spawnThreat],
+    [lanes, combo, spawnThreat, onAnswer],
   )
 
   const targetThreat = target !== null ? lanes[target] : null

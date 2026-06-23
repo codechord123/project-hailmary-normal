@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
 import { QuickAnswer } from '@/content/components/QuickAnswer'
+import { useProgress } from '@/content/progress'
+import { sfx } from '@/lib/sfx'
 import type { ContentProblem } from '@/content/types'
 
 const DURATION = 60 // 초
@@ -35,6 +37,8 @@ export function TimeAttackContent() {
   const [timeLeft, setTimeLeft] = useState(DURATION)
   const [status, setStatus] = useState<'play' | 'done'>('play')
   const [flash, setFlash] = useState<'ok' | 'no' | null>(null)
+  const recordAnswer = useProgress((s) => s.recordAnswer)
+  const recordTimeAttack = useProgress((s) => s.recordTimeAttack)
 
   useEffect(() => {
     if (status !== 'play') return
@@ -47,20 +51,28 @@ export function TimeAttackContent() {
     return () => clearInterval(id)
   }, [status])
 
+  useEffect(() => {
+    if (status === 'done' && unit) recordTimeAttack(unit.id, score)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
+
   if (!unit) return <Navigate to="/subjects" replace />
 
   const problem = pool[idx % pool.length]
 
   const handleResult = (ok: boolean) => {
     if (status !== 'play') return
+    recordAnswer(unit.id, problem.id, ok)
     setAnswered((a) => a + 1)
     if (ok) {
+      sfx.correct()
       const c = combo + 1
       setCombo(c)
       setCorrect((x) => x + 1)
       setScore((s) => s + 10 + c * 2)
       setFlash('ok')
     } else {
+      sfx.wrong()
       setCombo(0)
       setTimeLeft((t) => Math.max(0, t - 2)) // 오답 시간 -2초
       setFlash('no')

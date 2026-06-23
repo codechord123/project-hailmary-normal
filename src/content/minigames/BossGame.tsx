@@ -13,6 +13,8 @@ interface Props {
   hitsToKill?: number
   onClear: (result: { score: number; bestCombo: number }) => void
   onExit: () => void
+  /** 문제 채점 결과 기록 (오답 노트·XP용) */
+  onAnswer?: (problemId: string, correct: boolean) => void
 }
 
 const START_HEARTS = 3
@@ -33,7 +35,7 @@ const shuffle = <T,>(arr: T[]): T[] => {
  */
 export function BossGame({
   problems, title, intro, bossName = '편견 빌런', bossEmoji = '👾',
-  hitsToKill = 4, onClear, onExit,
+  hitsToKill = 4, onClear, onExit, onAnswer,
 }: Props) {
   const queueRef = useRef<ContentProblem[]>([])
   const nextProblem = useCallback((): ContentProblem => {
@@ -63,6 +65,7 @@ export function BossGame({
 
   const resolve = (correct: boolean) => {
     if (status !== 'play') return
+    onAnswer?.(problem.id, correct)
     if (correct) {
       const newCombo = combo + 1
       setCombo(newCombo)

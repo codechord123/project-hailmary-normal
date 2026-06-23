@@ -1,7 +1,9 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
 import { QuickAnswer } from '@/content/components/QuickAnswer'
+import { useProgress } from '@/content/progress'
+import { sfx } from '@/lib/sfx'
 import type { ContentProblem } from '@/content/types'
 
 const START_HEARTS = 3
@@ -34,6 +36,13 @@ export function EndlessContent() {
   const [solved, setSolved] = useState(0)
   const [flash, setFlash] = useState<'ok' | 'no' | null>(null)
   const [status, setStatus] = useState<'play' | 'done'>('play')
+  const recordAnswer = useProgress((s) => s.recordAnswer)
+  const recordEndless = useProgress((s) => s.recordEndless)
+
+  useEffect(() => {
+    if (status === 'done' && unit) recordEndless(unit.id, best)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status])
 
   if (!unit) return <Navigate to="/subjects" replace />
 
@@ -41,13 +50,16 @@ export function EndlessContent() {
 
   const handleResult = (ok: boolean) => {
     if (status !== 'play') return
+    recordAnswer(unit.id, problem.id, ok)
     if (ok) {
+      sfx.correct()
       const s = streak + 1
       setStreak(s)
       setBest((b) => Math.max(b, s))
       setSolved((x) => x + 1)
       setFlash('ok')
     } else {
+      sfx.wrong()
       setStreak(0)
       setFlash('no')
       setHearts((h) => {
