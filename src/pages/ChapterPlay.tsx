@@ -1,6 +1,7 @@
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
 import { DefenseGame } from '@/content/minigames/DefenseGame'
+import { MatchingGame } from '@/content/minigames/MatchingGame'
 
 /**
  * 챕터 플레이 — 챕터의 미니게임 메커니즘에 맞는 화면을 띄운다.
@@ -19,6 +20,18 @@ export function ChapterPlay() {
   if (chapter.mechanic === 'defense') {
     return (
       <DefenseGame
+        problems={chapter.problems}
+        title={chapter.title}
+        intro={chapter.intro}
+        onClear={backToUnit}
+        onExit={backToUnit}
+      />
+    )
+  }
+
+  if (chapter.mechanic === 'matching') {
+    return (
+      <MatchingGame
         problems={chapter.problems}
         title={chapter.title}
         intro={chapter.intro}
