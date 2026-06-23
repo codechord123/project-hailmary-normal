@@ -171,6 +171,12 @@ export function UnitHome() {
         >
           전체 문제 카드로 풀어보기 →
         </Link>
+        <Link
+          to={`/teacher/unit/${unit.id}`}
+          className="self-center text-xs text-white/30 hover:text-white/60 underline underline-offset-4"
+        >
+          👩‍🏫 선생님 · 학생 진도 보기
+        </Link>
       </div>
     </div>
   )

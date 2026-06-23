@@ -53,6 +53,7 @@ const TimeAttackContent = lazy(() => import('@/pages/TimeAttackContent').then((m
 const EndlessContent = lazy(() => import('@/pages/EndlessContent').then((m) => ({ default: m.EndlessContent })))
 const WrongNotesContent = lazy(() => import('@/pages/WrongNotesContent').then((m) => ({ default: m.WrongNotesContent })))
 const AchievementsContent = lazy(() => import('@/pages/AchievementsContent').then((m) => ({ default: m.AchievementsContent })))
+const UnitTeacherDashboard = lazy(() => import('@/pages/UnitTeacherDashboard').then((m) => ({ default: m.UnitTeacherDashboard })))
 
 function Loading() {
   return (
@@ -161,6 +162,7 @@ export default function App() {
             <Route path="/unit/:unitId/endless" element={<RequireLogin><EndlessContent /></RequireLogin>} />
             <Route path="/unit/:unitId/wrong" element={<RequireLogin><WrongNotesContent /></RequireLogin>} />
             <Route path="/unit/:unitId/achievements" element={<RequireLogin><AchievementsContent /></RequireLogin>} />
+            <Route path="/teacher/unit/:unitId" element={<UnitTeacherDashboard />} />
             <Route path="/unit-preview" element={<UnitPreview />} />
             <Route path="*" element={<RequireLogin><Navigate to="/subjects" replace /></RequireLogin>} />
           </Routes>

@@ -134,3 +134,21 @@ export const useProgress = create<ProgressState>((set, getState) => {
 export function useUnitProgress(unitId: string): UnitProgress {
   return useProgress((s) => s.data[keyFor(unitId)] ?? EMPTY)
 }
+
+export interface StudentUnitRow {
+  student: string
+  progress: UnitProgress
+}
+
+/** 교사용 — 한 단원을 학습한 모든 학생의 진도 (이 단말 기준) */
+export function rowsForUnit(
+  data: Record<string, UnitProgress>,
+  unitId: string,
+): StudentUnitRow[] {
+  const suffix = `::${unitId}`
+  return Object.entries(data)
+    .filter(([k]) => k.endsWith(suffix))
+    .map(([k, progress]) => ({ student: k.slice(0, k.length - suffix.length), progress }))
+    .filter((r) => r.student.length > 0)
+    .sort((a, b) => a.student.localeCompare(b.student))
+}
