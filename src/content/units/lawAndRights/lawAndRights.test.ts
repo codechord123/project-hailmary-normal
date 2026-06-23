@@ -38,4 +38,15 @@ describe('법의 역할과 인권 — 콘텐츠 데이터 무결성', () => {
     const mechanics = lawAndRightsUnit.chapters.map((c) => c.mechanic)
     expect(mechanics).toEqual(['defense', 'matching', 'boss', 'finalboss'])
   })
+
+  it('단원 전체 문항이 100개 이상이다', () => {
+    expect(allProblems.length).toBeGreaterThanOrEqual(100)
+  })
+
+  it('OX 문항의 정답은 boolean 이다', () => {
+    for (const p of allProblems) {
+      if (p.kind !== 'ox') continue
+      expect(typeof p.answer).toBe('boolean')
+    }
+  })
 })
