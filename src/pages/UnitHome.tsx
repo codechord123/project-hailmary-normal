@@ -39,7 +39,7 @@ export function UnitHome() {
           return (
             <Link
               key={ch.id}
-              to={`/unit-preview?unit=${unit.id}&chapter=${ch.id}`}
+              to={`/play/${unit.id}/${ch.id}`}
               className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-4 flex items-center gap-4"
             >
               <span className="text-3xl">{m.icon}</span>

@@ -48,6 +48,7 @@ const UnitPreview = lazy(() => import('@/pages/UnitPreview').then((m) => ({ defa
 const SubjectSelect = lazy(() => import('@/pages/SubjectSelect').then((m) => ({ default: m.SubjectSelect })))
 const UnitSelect = lazy(() => import('@/pages/UnitSelect').then((m) => ({ default: m.UnitSelect })))
 const UnitHome = lazy(() => import('@/pages/UnitHome').then((m) => ({ default: m.UnitHome })))
+const ChapterPlay = lazy(() => import('@/pages/ChapterPlay').then((m) => ({ default: m.ChapterPlay })))
 
 function Loading() {
   return (
@@ -149,6 +150,7 @@ export default function App() {
             <Route path="/subjects" element={<RequireLogin><SubjectSelect /></RequireLogin>} />
             <Route path="/subject/:subjectId" element={<RequireLogin><UnitSelect /></RequireLogin>} />
             <Route path="/unit/:unitId" element={<RequireLogin><UnitHome /></RequireLogin>} />
+            <Route path="/play/:unitId/:chapterId" element={<RequireLogin><ChapterPlay /></RequireLogin>} />
             <Route path="/unit-preview" element={<UnitPreview />} />
             <Route path="*" element={<RequireLogin><MainMenu /></RequireLogin>} />
           </Routes>
