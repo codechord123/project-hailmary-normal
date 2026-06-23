@@ -1,7 +1,9 @@
+import { useRef } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
 import { useProgress, rowsForUnit, problemStatsForUnit } from '@/content/progress'
 import { isTeacherUnlocked } from '@/lib/teacherAuth'
+import { exportBackup, importBackup } from '@/content/backup'
 import type { ContentProblem } from '@/content/types'
 
 const label = (p: ContentProblem) =>
@@ -12,6 +14,19 @@ export function UnitTeacherDashboard() {
   const { unitId = '' } = useParams()
   const unit = findUnit(unitId)
   const data = useProgress((s) => s.data)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const onImport = async (file: File | undefined) => {
+    if (!file) return
+    if (!window.confirm('이 기기의 기존 학습 데이터가 백업 파일 내용으로 교체돼요. 계속할까요?')) return
+    const r = await importBackup(file)
+    if (r.ok) {
+      alert('복원했어요! 새로고침합니다.')
+      window.location.reload()
+    } else {
+      alert(`복원 실패: ${r.reason}`)
+    }
+  }
 
   if (!unit) return <Navigate to="/subjects" replace />
 
@@ -65,9 +80,24 @@ export function UnitTeacherDashboard() {
     <div className="min-h-screen px-4 py-6 max-w-3xl mx-auto">
       <div className="flex items-center justify-between">
         <Link to={`/unit/${unit.id}`} className="text-sm text-white/60 hover:text-white">← 단원</Link>
-        <button onClick={exportCsv} className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-200 border border-emerald-300/40 text-xs font-bold">
-          ⬇ CSV 내보내기
-        </button>
+        <div className="flex gap-2">
+          <button onClick={exportCsv} className="px-3 py-1.5 rounded-lg bg-emerald-500/20 text-emerald-200 border border-emerald-300/40 text-xs font-bold">
+            ⬇ CSV
+          </button>
+          <button onClick={exportBackup} className="px-3 py-1.5 rounded-lg bg-sky-500/20 text-sky-200 border border-sky-300/40 text-xs font-bold">
+            💾 백업
+          </button>
+          <button onClick={() => fileRef.current?.click()} className="px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-200 border border-amber-300/40 text-xs font-bold">
+            📂 복원
+          </button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="application/json"
+            className="hidden"
+            onChange={(e) => onImport(e.target.files?.[0])}
+          />
+        </div>
       </div>
 
       <h1 className="mt-3 text-2xl font-black text-white">👩‍🏫 {unit.title} · 학생 진도</h1>
