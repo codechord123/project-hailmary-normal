@@ -9,7 +9,7 @@
 export type Difficulty = 1 | 2 | 3
 
 /** 챕터에 입히는 미니게임 메커니즘 */
-export type MechanicId = 'defense' | 'matching' | 'boss' | 'finalboss'
+export type MechanicId = 'defense' | 'sorting' | 'matching' | 'oxrush' | 'boss' | 'finalboss'
 
 interface BaseProblem {
   id: string

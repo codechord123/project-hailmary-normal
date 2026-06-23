@@ -1,195 +1,150 @@
 import type { ChapterDef } from '@/content/types'
 
 /**
- * 챕터 3 — 「인권이란 무엇일까」 (보스전)
- * 학습: 인권의 의미와 특징, 인권 신장에 힘쓴 인물, 옛날 인권 제도, 인권 존중·침해.
- * 서사: 인권을 무시하는 "편견 빌런"을 올바른 인권 지식으로 무찌른다.
+ * 챕터 3 — 「여러 가지 법」 (매칭)
+ * 학습: 우리 생활 속 여러 법과 그 법이 하는 일.
+ * 서사: 흩어진 법 카드와 역할 카드를 짝지어 법전을 복구한다.
  */
 export const chapter3: ChapterDef = {
   id: 'law-rights-3',
-  title: '인권이란 무엇일까',
-  mechanic: 'boss',
-  intro:
-    '"권리는 내가 정하는 거야!" 편견 빌런이 나타났어요. 인권이 무엇인지 똑똑히 알려 줘서 빌런을 무찔러요!',
+  title: '여러 가지 법',
+  mechanic: 'matching',
+  intro: '도시의 법전이 뒤섞여버렸어요! 각 법과 그 법이 하는 일을 알맞게 이어 붙여 법전을 되살려요.',
   problems: [
-    // ── 원본 샘플 ──
     {
-      id: 'c3-16', kind: 'mcq', difficulty: 2, source: '1회 16번',
-      prompt: '인권의 특징으로 알맞은 것을 두 가지 고르세요.',
-      choices: [
-        '나라에서 허락한 권리이다.',
-        '어른에게만 주어지는 권리이다.',
-        '재산이 많은 사람이 누리는 권리이다.',
-        '사람이라면 누구나 태어날 때부터 가지는 권리이다.',
-        '다른 사람이 힘이나 권력으로 함부로 빼앗을 수 없는 권리이다.',
+      id: 'c3m-1', kind: 'matching', difficulty: 2, source: '1회 6·7·8·10번 종합',
+      prompt: '법과 그 법이 하는 일을 알맞게 짝지어요.',
+      pairs: [
+        { left: '학교 급식법', right: '학교에서 건강하고 안전하게 생활' },
+        { left: '저작권법', right: '창작물 이용 시 정당한 비용을 냄' },
+        { left: '소방 기본법', right: '화재를 예방하고 생명·재산을 보호' },
+        { left: '경찰관 직무 집행법', right: '사회 질서를 유지하고 국민 안전을 지킴' },
+        { left: '자연환경 보전법', right: '생태계와 자연환경을 보호' },
+        { left: '초·중등 교육법', right: '학교에서 공부할 권리를 보장' },
       ],
-      correctIndexes: [3, 4], multiple: true,
     },
-
-    // ── 인권의 의미와 특징 ──
     {
-      id: 'c3-1', kind: 'mcq', difficulty: 1, source: '교육과정',
-      prompt: '인권이란 무엇일까요?',
+      id: 'c3m-2', kind: 'matching', difficulty: 2, source: '교육과정',
+      prompt: '법과 그 법이 보호하는 것을 알맞게 짝지어요.',
+      pairs: [
+        { left: '도로 교통법', right: '교통질서를 지켜 안전을 보호' },
+        { left: '식품 안전 기본법', right: '안전한 먹거리를 보장' },
+        { left: '장애인 차별 금지법', right: '장애인이 차별받지 않도록 보호' },
+        { left: '소비자 기본법', right: '소비자의 권리를 보호' },
+        { left: '어린이 놀이 시설 안전 관리법', right: '놀이 시설을 안전하게 관리' },
+      ],
+    },
+    {
+      id: 'c2-7', kind: 'mcq', difficulty: 2, source: '1회 7번',
+      figure: '한 사람이 컴퓨터로 창작물을 이용하며 "다른 사람의 창작물을 이용할 때는 정당한 비용을 내야 해." 라고 말하는 그림',
+      prompt: '이 그림과 관련 있는 법으로 알맞은 것은?',
+      choices: ['건축법', '의료법', '저작권법', '도로 교통법', '식품 안전 기본법'],
+      correctIndexes: [2], multiple: false,
+    },
+    {
+      id: 'c2-8', kind: 'mcq', difficulty: 2, source: '1회 8번(서술→보기)',
+      scenario: '경찰관이 「경찰관 직무 집행법」에 따라 순찰을 나갑니다.',
+      prompt: '이 법이 우리 생활에 주는 영향으로 알맞은 것은?',
       choices: [
-        '사람이라면 누구나 태어나면서부터 가지는 기본적인 권리',
-        '어른이 되어야 생기는 권리',
-        '돈을 주고 사는 권리',
-        '나라가 골라 준 사람만 갖는 권리',
+        '사회 질서를 유지하고 국민의 안전을 지켜 준다',
+        '개인의 재산을 마음대로 빼앗는다',
+        '교통사고가 자주 일어나게 한다',
+        '창작물을 공짜로 쓰게 해 준다',
       ],
       correctIndexes: [0], multiple: false,
     },
     {
-      id: 'c3-2', kind: 'ox', difficulty: 1, source: '교육과정',
-      statement: '인권은 사람이라면 누구나 태어날 때부터 가진다.',
-      answer: true,
-    },
-    {
-      id: 'c3-3', kind: 'ox', difficulty: 2, source: '교육과정',
-      statement: '인권은 다른 사람이 힘으로 함부로 빼앗을 수 있다.',
-      answer: false,
-    },
-    {
-      id: 'c3-4', kind: 'mcq', difficulty: 2, source: '교육과정',
-      prompt: '인권에 대한 설명으로 알맞은 것은?',
-      choices: ['남자만 가진다', '어린이도 똑같이 가진다', '부자만 가진다', '어른만 가진다'],
+      id: 'c2-9', kind: 'mcq', difficulty: 2, source: '1회 9번',
+      prompt: '생태계와 자연환경을 보호하고 국민이 건강한 생활을 하도록 정한 법은?',
+      choices: ['소비자 기본법', '자연환경 보전법'],
       correctIndexes: [1], multiple: false,
     },
     {
-      id: 'c3-5', kind: 'mcq', difficulty: 2, source: '교육과정',
-      prompt: '인권의 특징으로 알맞은 것을 모두 고르세요.',
-      choices: ['태어날 때부터 가진다', '모든 사람이 똑같이 가진다', '함부로 빼앗을 수 없다', '힘센 사람만 가진다'],
-      correctIndexes: [0, 1, 2], multiple: true,
-    },
-    {
-      id: 'c3-21', kind: 'mcq', difficulty: 2, source: '교육과정',
-      prompt: "'인권은 태어날 때부터 가진다'는 말의 뜻으로 알맞은 것은?",
+      id: 'c2-10', kind: 'mcq', difficulty: 2, source: '1회 10번',
+      prompt: '「소방 기본법」을 정해 놓은 까닭으로 알맞은 것은?',
       choices: [
-        '누가 주지 않아도 사람이면 당연히 가진다',
-        '나라가 허락해야 가진다',
-        '시험을 봐야 가진다',
-        '돈을 내야 가진다',
+        '안전한 식생활을 보장하기 위해서',
+        '도로에서 일어나는 위험과 장애를 막기 위해서',
+        '화재를 예방하고 위급한 상황에서 국민의 생명과 재산을 보호하기 위해서',
       ],
-      correctIndexes: [0], multiple: false,
+      correctIndexes: [2], multiple: false,
     },
     {
-      id: 'c3-20', kind: 'ox', difficulty: 1, source: '교육과정',
-      statement: '인권은 어른이 되어야만 생기는 권리이다.',
+      id: 'c2-5', kind: 'mcq', difficulty: 2, source: '1회 5번',
+      prompt: '「초·중등 교육법」이 우리 생활에 주는 영향을 바르게 말한 친구는?',
+      choices: ['아름: 학교에서 공부할 수 있어.', '수민: 안전하게 등교할 수 있어.'],
+      correctIndexes: [0], multiple: false,
+      hint: '교육법은 "교육(공부)"과 관련 있어요.',
+    },
+    {
+      id: 'c2-6a', kind: 'ox', difficulty: 2, source: '1회 6-(1)번',
+      statement: '「학교 급식법」과 「어린이 놀이 시설 안전 관리법」은 튼튼하고 안전한 "건물"에서 생활하기 위해 만들었다.',
       answer: false,
     },
     {
-      id: 'c3-17', kind: 'mcq', difficulty: 1, source: '교육과정',
-      prompt: '어린이의 인권에 대한 설명으로 알맞은 것은?',
+      id: 'c2-6b', kind: 'ox', difficulty: 1, source: '1회 6-(2)번',
+      statement: '「학교 급식법」은 학교에서 건강하고 안전하게 생활할 수 있도록 만들었다.',
+      answer: true,
+    },
+    {
+      id: 'c2-20', kind: 'mcq', difficulty: 2, source: '1회 20번(서술→보기)',
+      figure: '한 사람이 컴퓨터로 다른 사람의 글을 베끼며 "내가 작성했는지 모를 거야." 라고 말하는 그림',
+      prompt: '이 상황에서 법(저작권)을 지키려면 어떻게 행동해야 할까요?',
       choices: [
-        '어린이도 존중받아야 할 인권을 가진다',
-        '어린이는 인권이 없다',
-        '어른이 되면 생긴다',
-        '어린이는 보호만 받으면 된다',
+        '다른 사람의 글을 내 것처럼 베껴 쓴다',
+        '출처를 밝히고 정당하게 이용한다',
+        '몰래 사용하고 들키지 않게 숨긴다',
+        '비용을 내지 않고 가져온다',
       ],
+      correctIndexes: [1], multiple: false,
+    },
+    {
+      id: 'c2-23', kind: 'mcq', difficulty: 1, source: '교육과정',
+      prompt: '「저작권법」은 무엇을 보호하나요?',
+      choices: ['사람이 만든 창작물(글·음악·그림 등)', '도로의 신호', '음식의 안전', '자연환경'],
       correctIndexes: [0], multiple: false,
     },
     {
-      id: 'c3-15', kind: 'ox', difficulty: 1, source: '교육과정',
-      statement: '남자와 여자, 어린이와 어른 모두 똑같이 존중받아야 한다.',
+      id: 'c2-24', kind: 'mcq', difficulty: 2, source: '교육과정',
+      prompt: '「도로 교통법」을 만든 까닭으로 알맞은 것은?',
+      choices: ['교통질서를 지켜 사고를 막고 안전을 보호하려고', '창작물을 보호하려고', '학교 급식을 관리하려고', '선거를 하려고'],
+      correctIndexes: [0], multiple: false,
+    },
+    {
+      id: 'c2-25', kind: 'mcq', difficulty: 1, source: '교육과정',
+      figure: '학교 앞 도로에 "어린이 보호 구역, 속도를 줄이세요" 표지판이 있는 그림',
+      prompt: '이와 관련 있는 것으로 알맞은 것은?',
+      choices: ['어린이 교통안전을 위한 보호 구역(스쿨존)', '어른 전용 도로', '자전거 경주장', '주차장'],
+      correctIndexes: [0], multiple: false,
+    },
+    {
+      id: 'c2-26', kind: 'mcq', difficulty: 1, source: '교육과정',
+      prompt: '「식품 안전 기본법」이 우리에게 주는 도움은?',
+      choices: ['안전한 먹거리를 먹을 수 있다', '자유롭게 이동할 수 있다', '선거에 참여할 수 있다', '창작물을 만들 수 있다'],
+      correctIndexes: [0], multiple: false,
+    },
+    {
+      id: 'c2-30', kind: 'mcq', difficulty: 1, source: '교육과정',
+      prompt: '깨끗한 환경에서 살 수 있도록 자연을 보호하는 법은?',
+      choices: ['자연환경 보전법', '저작권법', '도로 교통법', '학교 급식법'],
+      correctIndexes: [0], multiple: false,
+    },
+    {
+      id: 'c2-31', kind: 'mcq', difficulty: 1, source: '교육과정',
+      prompt: '물건을 산 소비자의 권리를 보호하는 법은?',
+      choices: ['소비자 기본법', '소방 기본법', '저작권법', '초·중등 교육법'],
+      correctIndexes: [0], multiple: false,
+    },
+    {
+      id: 'c2-33', kind: 'mcq', difficulty: 1, source: '교육과정',
+      prompt: '장애가 있는 사람도 차별받지 않도록 보호하는 법은?',
+      choices: ['장애인 차별 금지법', '도로 교통법', '저작권법', '소방 기본법'],
+      correctIndexes: [0], multiple: false,
+    },
+    {
+      id: 'c2-34', kind: 'ox', difficulty: 1, source: '교육과정',
+      statement: '「소방 기본법」은 화재를 예방하고 국민의 생명과 재산을 보호하기 위한 법이다.',
       answer: true,
-    },
-
-    // ── 인권 신장에 힘쓴 인물 ──
-    {
-      id: 'c3-6', kind: 'mcq', difficulty: 2, source: '교육과정',
-      prompt: "어린이를 존중하자며 '어린이날'을 만들고 어린이 인권을 위해 힘쓴 인물은?",
-      choices: ['방정환', '이태영', '허균', '세종대왕'],
-      correctIndexes: [0], multiple: false,
-    },
-    {
-      id: 'c3-7', kind: 'mcq', difficulty: 2, source: '교육과정',
-      prompt: '우리나라 최초의 여성 변호사로, 여성의 인권을 위해 노력한 인물은?',
-      choices: ['이태영', '신사임당', '유관순', '허난설헌'],
-      correctIndexes: [0], multiple: false,
-    },
-    {
-      id: 'c3-8', kind: 'mcq', difficulty: 2, source: '교육과정',
-      prompt: '신분 차별이 없는 세상을 꿈꾸며 「홍길동전」을 지은 인물은?',
-      choices: ['허균', '정약용', '김홍도', '이순신'],
-      correctIndexes: [0], multiple: false,
-    },
-    {
-      id: 'c3-9', kind: 'mcq', difficulty: 2, source: '교육과정',
-      prompt: "미국에서 흑인과 백인의 차별에 맞서 '나에게는 꿈이 있습니다' 연설을 한 인물은?",
-      choices: ['마틴 루서 킹', '전태일', '방정환', '이태영'],
-      correctIndexes: [0], multiple: false,
-    },
-    {
-      id: 'c3-24', kind: 'mcq', difficulty: 3, source: '교육과정',
-      prompt: '남아프리카 공화국에서 흑인 차별(아파르트헤이트)에 맞서 싸운 인물은?',
-      choices: ['넬슨 만델라', '마틴 루서 킹', '간디', '링컨'],
-      correctIndexes: [0], multiple: false,
-    },
-    {
-      id: 'c3-18', kind: 'mcq', difficulty: 2, source: '교육과정',
-      prompt: '가난하고 병든 사람들을 위해 평생을 바친 인물은?',
-      choices: ['테레사 수녀', '마리 퀴리', '에디슨', '뉴턴'],
-      correctIndexes: [0], multiple: false,
-    },
-    {
-      id: 'c3-19', kind: 'mcq', difficulty: 2, source: '교육과정',
-      prompt: '노동자의 권리를 위해 노력한 우리나라 인물은?',
-      choices: ['전태일', '방정환', '허균', '이태영'],
-      correctIndexes: [0], multiple: false,
-    },
-
-    // ── 옛날 인권 제도 ──
-    {
-      id: 'c3-10', kind: 'mcq', difficulty: 2, source: '교육과정',
-      prompt: '옛날에 억울한 일을 당한 백성이 임금에게 알리려고 치던 북은?',
-      choices: ['신문고', '꽹과리', '종', '장구'],
-      correctIndexes: [0], multiple: false,
-    },
-    {
-      id: 'c3-11', kind: 'mcq', difficulty: 3, source: '교육과정',
-      prompt: '옛날에 백성의 억울함을 풀어 주기 위한 제도가 "아닌" 것은?',
-      choices: ['신문고', '상소', '격쟁', '선거'],
-      correctIndexes: [3], multiple: false,
-    },
-    {
-      id: 'c3-12', kind: 'ox', difficulty: 1, source: '교육과정',
-      statement: '옛날에도 백성의 억울함을 풀어 주려는 제도(신문고 등)가 있었다.',
-      answer: true,
-    },
-
-    // ── 인권 존중·침해 ──
-    {
-      id: 'c3-13', kind: 'mcq', difficulty: 2, source: '교육과정',
-      prompt: '다음 중 인권이 침해된 경우는?',
-      choices: [
-        '친구를 외모로 놀리며 차별한다',
-        '친구와 사이좋게 논다',
-        '서로 존중하며 대화한다',
-        '규칙을 함께 지킨다',
-      ],
-      correctIndexes: [0], multiple: false,
-    },
-    {
-      id: 'c3-14', kind: 'mcq', difficulty: 1, source: '교육과정',
-      prompt: '인권을 존중하는 태도로 알맞은 것은?',
-      choices: ['나와 다른 사람도 존중한다', '약한 사람을 무시한다', '내 권리만 주장한다', '함부로 차별한다'],
-      correctIndexes: [0], multiple: false,
-    },
-    {
-      id: 'c3-22', kind: 'mcq', difficulty: 1, source: '교육과정',
-      prompt: '인권을 존중하는 사회의 모습으로 알맞은 것은?',
-      choices: ['장애가 있어도 차별하지 않는다', '남자만 우대한다', '부자만 존중한다', '어른만 대우한다'],
-      correctIndexes: [0], multiple: false,
-    },
-    {
-      id: 'c3-23', kind: 'ox', difficulty: 1, source: '교육과정',
-      statement: '외모나 성별이 다르다고 놀리거나 차별하는 것은 인권 침해이다.',
-      answer: true,
-    },
-    {
-      id: 'c3-25', kind: 'mcq', difficulty: 3, source: '교육과정',
-      prompt: '모든 사람이 존중받아야 한다고 세계가 함께 약속한 것은?',
-      choices: ['세계 인권 선언', '학급 규칙', '교통 법규', '급식 메뉴'],
-      correctIndexes: [0], multiple: false,
     },
   ],
 }

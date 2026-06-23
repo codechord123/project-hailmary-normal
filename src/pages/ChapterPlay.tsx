@@ -5,6 +5,8 @@ import { awardAnswer, awardClear } from '@/content/rewards'
 import { DefenseGame } from '@/content/minigames/DefenseGame'
 import { MatchingGame } from '@/content/minigames/MatchingGame'
 import { BossGame } from '@/content/minigames/BossGame'
+import { SortingGame } from '@/content/minigames/SortingGame'
+import { OxRushGame } from '@/content/minigames/OxRushGame'
 
 /**
  * 챕터 플레이 — 챕터의 미니게임 메커니즘에 맞는 화면을 띄운다.
@@ -44,12 +46,38 @@ export function ChapterPlay() {
     )
   }
 
+  if (chapter.mechanic === 'sorting') {
+    return (
+      <SortingGame
+        problems={chapter.problems}
+        title={chapter.title}
+        intro={chapter.intro}
+        onAward={(correct) => awardAnswer(correct)}
+        onClear={onClear}
+        onExit={backToUnit}
+      />
+    )
+  }
+
   if (chapter.mechanic === 'matching') {
     return (
       <MatchingGame
         problems={chapter.problems}
         title={chapter.title}
         intro={chapter.intro}
+        onClear={onClear}
+        onExit={backToUnit}
+      />
+    )
+  }
+
+  if (chapter.mechanic === 'oxrush') {
+    return (
+      <OxRushGame
+        problems={chapter.problems}
+        title={chapter.title}
+        intro={chapter.intro}
+        onAnswer={onAnswer}
         onClear={onClear}
         onExit={backToUnit}
       />

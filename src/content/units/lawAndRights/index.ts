@@ -3,6 +3,8 @@ import { chapter1 } from './chapter1'
 import { chapter2 } from './chapter2'
 import { chapter3 } from './chapter3'
 import { chapter4 } from './chapter4'
+import { chapter5 } from './chapter5'
+import { chapter6 } from './chapter6'
 
 /**
  * 단원: 사회 5-1 「법의 역할과 인권」
@@ -28,5 +30,5 @@ export const lawAndRightsUnit: UnitDef = {
       { level: 8, title: '인권 챔피언' },
     ],
   },
-  chapters: [chapter1, chapter2, chapter3, chapter4],
+  chapters: [chapter1, chapter2, chapter3, chapter4, chapter5, chapter6],
 }
