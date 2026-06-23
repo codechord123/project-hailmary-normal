@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
 import { QuickAnswer } from '@/content/components/QuickAnswer'
-import { useProgress } from '@/content/progress'
+import { useProgress, isWeak } from '@/content/progress'
 import { awardAnswer } from '@/content/rewards'
 import { sfx } from '@/lib/sfx'
 import type { ContentProblem } from '@/content/types'
@@ -26,7 +26,10 @@ export function EndlessContent() {
 
   const pool: ContentProblem[] = useMemo(() => {
     if (!unit) return []
-    return shuffle(unit.chapters.flatMap((c) => c.problems).filter((p) => p.kind !== 'matching'))
+    const base = shuffle(unit.chapters.flatMap((c) => c.problems).filter((p) => p.kind !== 'matching'))
+    const prog = useProgress.getState().get(unit.id)
+    const weak = base.filter((p) => isWeak(prog, p.id))
+    return weak.length ? [...shuffle(weak), ...base] : base
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unit, runId])
 

@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
-import { useUnitProgress, useProgress } from '@/content/progress'
+import { useUnitProgress, useProgress, weaknessScore } from '@/content/progress'
 import { ContentProblemCard } from '@/content/components/ContentProblemCard'
+import type { ContentProblem } from '@/content/types'
 
 /** 오답 노트 — 틀린 문제를 모아 다시 풀고, 맞히면 노트에서 지운다. */
 export function WrongNotesContent() {
@@ -15,7 +16,10 @@ export function WrongNotesContent() {
   const queue = useMemo(() => {
     if (!unit) return []
     const all = unit.chapters.flatMap((c) => c.problems)
-    return prog.wrongIds.map((id) => all.find((p) => p.id === id)).filter(Boolean)
+    return prog.wrongIds
+      .map((id) => all.find((p) => p.id === id))
+      .filter((p): p is ContentProblem => Boolean(p))
+      .sort((a, b) => weaknessScore(prog, a.id) - weaknessScore(prog, b.id))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unit])
 
@@ -34,6 +38,9 @@ export function WrongNotesContent() {
       </div>
 
       <h1 className="text-xl font-black text-white">오답 노트</h1>
+      {queue.length > 0 && (
+        <p className="text-xs text-white/45 -mt-3">가장 약한 개념부터 복습 중이에요.</p>
+      )}
 
       {queue.length === 0 ? (
         <p className="text-white/60 mt-6">🎉 오답이 없어요! 모든 문제를 잘 풀었네요.</p>

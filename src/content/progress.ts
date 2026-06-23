@@ -142,6 +142,20 @@ export function useUnitProgress(unitId: string): UnitProgress {
   return useProgress((s) => s.data[keyFor(unitId)] ?? EMPTY)
 }
 
+/** 복습 우선순위: 낮을수록 약점(먼저 복습) */
+export function weaknessScore(progress: UnitProgress, problemId: string): number {
+  const a = progress.attempts?.[problemId]
+  const acc = a && a.t > 0 ? a.c / a.t : 1
+  return acc + (progress.wrongIds.includes(problemId) ? -0.5 : 0)
+}
+
+/** 약점 문제 여부 — 오답 누적 또는 정답률 60% 미만 */
+export function isWeak(progress: UnitProgress, problemId: string): boolean {
+  if (progress.wrongIds.includes(problemId)) return true
+  const a = progress.attempts?.[problemId]
+  return !!a && a.t > 0 && a.c / a.t < 0.6
+}
+
 export interface StudentUnitRow {
   student: string
   progress: UnitProgress
