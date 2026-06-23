@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: 'Pretendard', 'Noto Sans KR', system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* KaTeX 색상 — 우주 테마에 맞게 흰색 */
+.katex { color: #ffffff !important; }
