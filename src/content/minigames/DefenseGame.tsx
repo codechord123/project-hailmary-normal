@@ -353,6 +353,7 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
                 {([true, false] as const).map((v) => (
                   <button
                     key={String(v)}
+                    aria-label={v ? '맞음 (O)' : '틀림 (X)'}
                     onClick={() => resolve(target!, judgeContent(targetProblem, { kind: 'ox', value: v }))}
                     className="w-20 h-20 rounded-2xl text-3xl font-black border-2 border-white/20 bg-white/5 hover:bg-white/10 hover:border-yellow-300 transition active:scale-95"
                   >

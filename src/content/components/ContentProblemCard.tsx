@@ -115,6 +115,8 @@ export function ContentProblemCard({ problem, onResult }: Props) {
                         : 'border-white/15 bg-white/5 text-white/85 hover:bg-white/10',
                 ].join(' ')}
               >
+                {submitted && isCorrectChoice && <span className="mr-1 text-green-300">✓</span>}
+                {submitted && picked && !isCorrectChoice && <span className="mr-1 text-red-300">✗</span>}
                 <span className="font-bold mr-2">{['①','②','③','④','⑤'][i] ?? i + 1}</span>
                 {choice}
               </button>
@@ -132,6 +134,7 @@ export function ContentProblemCard({ problem, onResult }: Props) {
             return (
               <button
                 key={String(v)}
+                aria-label={v ? '맞음 (O)' : '틀림 (X)'}
                 disabled={submitted}
                 onClick={() => setAnswer({ kind: 'ox', value: v })}
                 className={[

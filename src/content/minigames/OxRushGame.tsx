@@ -131,8 +131,8 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
       </motion.div>
 
       <div className="flex gap-4 justify-center">
-        <button onClick={() => answer(true)} className="w-28 h-28 rounded-3xl text-5xl font-black border-2 border-white/20 bg-white/5 hover:bg-emerald-400/15 hover:border-emerald-300 transition active:scale-95">⭕</button>
-        <button onClick={() => answer(false)} className="w-28 h-28 rounded-3xl text-5xl font-black border-2 border-white/20 bg-white/5 hover:bg-red-400/15 hover:border-red-300 transition active:scale-95">❌</button>
+        <button aria-label="맞음 (O)" onClick={() => answer(true)} className="w-28 h-28 rounded-3xl text-5xl font-black border-2 border-white/20 bg-white/5 hover:bg-emerald-400/15 hover:border-emerald-300 transition active:scale-95">⭕</button>
+        <button aria-label="틀림 (X)" onClick={() => answer(false)} className="w-28 h-28 rounded-3xl text-5xl font-black border-2 border-white/20 bg-white/5 hover:bg-red-400/15 hover:border-red-300 transition active:scale-95">❌</button>
       </div>
 
       {intro && correctCount === 0 && (

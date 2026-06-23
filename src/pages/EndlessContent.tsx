@@ -2,21 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
 import { QuickAnswer } from '@/content/components/QuickAnswer'
-import { useProgress, isWeak } from '@/content/progress'
+import { useProgress } from '@/content/progress'
+import { buildWeightedPool } from '@/content/pool'
 import { awardAnswer } from '@/content/rewards'
 import { sfx } from '@/lib/sfx'
 import type { ContentProblem } from '@/content/types'
 
 const START_HEARTS = 3
-
-const shuffle = <T,>(arr: T[]): T[] => {
-  const a = [...arr]
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[a[i], a[j]] = [a[j], a[i]]
-  }
-  return a
-}
 
 /** 끝없는 도전 — 틀리면 하트 차감, 최대한 길게 이어 가기 (활성 단원 문제) */
 export function EndlessContent() {
@@ -26,10 +18,7 @@ export function EndlessContent() {
 
   const pool: ContentProblem[] = useMemo(() => {
     if (!unit) return []
-    const base = shuffle(unit.chapters.flatMap((c) => c.problems).filter((p) => p.kind !== 'matching'))
-    const prog = useProgress.getState().get(unit.id)
-    const weak = base.filter((p) => isWeak(prog, p.id))
-    return weak.length ? [...shuffle(weak), ...base] : base
+    return buildWeightedPool(unit.chapters.flatMap((c) => c.problems), useProgress.getState().get(unit.id))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unit, runId])
 
