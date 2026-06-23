@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { SUBJECTS } from '@/content/registry'
 
 /** 책꽂이 1단계 — 과목 선택 */
@@ -15,18 +16,24 @@ export function SubjectSelect() {
       </div>
 
       <div className="w-full max-w-xl grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {SUBJECTS.map((s) => (
-          <Link
+        {SUBJECTS.map((s, i) => (
+          <motion.div
             key={s.id}
-            to={`/subject/${s.id}`}
-            className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-5 flex items-center gap-4"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.06 }}
           >
-            <span className="text-4xl">{s.icon}</span>
-            <span className="flex flex-col">
-              <span className="text-lg font-bold text-white">{s.name}</span>
-              <span className="text-xs text-white/50">단원 {s.units.length}개</span>
-            </span>
-          </Link>
+            <Link
+              to={`/subject/${s.id}`}
+              className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-[1.02] transition p-5 flex items-center gap-4"
+            >
+              <span className="text-4xl">{s.icon}</span>
+              <span className="flex flex-col">
+                <span className="text-lg font-bold text-white">{s.name}</span>
+                <span className="text-xs text-white/50">단원 {s.units.length}개</span>
+              </span>
+            </Link>
+          </motion.div>
         ))}
       </div>
     </div>

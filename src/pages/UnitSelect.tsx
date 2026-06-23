@@ -1,4 +1,5 @@
 import { Link, useParams, Navigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { findSubject } from '@/content/registry'
 
 /** 책꽂이 2단계 — 과목 안에서 단원 선택 */
@@ -21,7 +22,7 @@ export function UnitSelect() {
       </div>
 
       <div className="w-full max-w-xl flex flex-col gap-3">
-        {subject.units.map((u) => {
+        {subject.units.map((u, i) => {
           const meta = u.kind === 'content' ? u.def : u
           // content → 단원 챕터 화면, legacy → 기존 게임 허브로
           const to = u.kind === 'content' ? `/unit/${u.def.id}` : u.route
@@ -30,15 +31,21 @@ export function UnitSelect() {
               ? `${u.def.chapters.length}개 챕터`
               : '기존 게임 전체 (항해·타임어택 등)'
           return (
-            <Link
+            <motion.div
               key={meta.id}
-              to={to}
-              className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-5 flex flex-col gap-1"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06 }}
             >
-              <span className="text-xs text-indigo-300/80">{meta.grade} · {meta.theme}</span>
-              <span className="text-lg font-bold text-white">{meta.title}</span>
-              <span className="text-xs text-white/50">{sub}</span>
-            </Link>
+              <Link
+                to={to}
+                className="block rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:scale-[1.01] transition p-5 flex flex-col gap-1"
+              >
+                <span className="text-xs text-indigo-300/80">{meta.grade} · {meta.theme}</span>
+                <span className="text-lg font-bold text-white">{meta.title}</span>
+                <span className="text-xs text-white/50">{sub}</span>
+              </Link>
+            </motion.div>
           )
         })}
       </div>
