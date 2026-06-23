@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { ContentProblem } from '@/content/types'
 import { judgeContent } from '@/content/judge'
+import { figureIcon } from '@/content/figureIcon'
 
 interface Props {
   problem: ContentProblem
@@ -21,8 +22,9 @@ export function QuickAnswer({ problem, onResult }: Props) {
         <p className="text-sm text-white/80 leading-relaxed">{problem.scenario}</p>
       )}
       {problem.figure && (
-        <div className="rounded-lg border border-dashed border-amber-300/40 bg-amber-300/5 p-2 text-xs text-amber-100/90">
-          🖼️ {problem.figure}
+        <div className="rounded-lg border border-dashed border-amber-300/40 bg-amber-300/5 p-2 flex items-center gap-2 text-xs text-amber-100/90">
+          <span className="text-2xl">{figureIcon(problem.figure)}</span>
+          <span>{problem.figure}</span>
         </div>
       )}
       <p className="text-lg font-bold text-white">

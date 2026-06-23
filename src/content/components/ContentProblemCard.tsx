@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { ContentProblem } from '@/content/types'
 import { judgeContent, isAnswered, type ContentAnswer } from '@/content/judge'
+import { figureIcon } from '@/content/figureIcon'
 
 interface Props {
   problem: ContentProblem
@@ -69,8 +70,9 @@ export function ContentProblemCard({ problem, onResult }: Props) {
       )}
 
       {problem.figure && (
-        <div className="rounded-xl border border-dashed border-amber-300/40 bg-amber-300/5 p-3 text-sm text-amber-100/90">
-          🖼️ <span className="font-semibold">자료</span> — {problem.figure}
+        <div className="rounded-xl border border-dashed border-amber-300/40 bg-amber-300/5 p-3 flex items-center gap-3">
+          <span className="text-4xl">{figureIcon(problem.figure)}</span>
+          <span className="text-sm text-amber-100/90"><span className="font-semibold">자료</span> — {problem.figure}</span>
         </div>
       )}
 
