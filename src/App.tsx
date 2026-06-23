@@ -45,6 +45,9 @@ const BossRush = lazy(() => import('@/pages/BossRush').then((m) => ({ default: m
 const BasicPractice = lazy(() => import('@/pages/BasicPractice').then((m) => ({ default: m.BasicPractice })))
 const TeacherDashboard = lazy(() => import('@/pages/TeacherDashboard').then((m) => ({ default: m.TeacherDashboard })))
 const UnitPreview = lazy(() => import('@/pages/UnitPreview').then((m) => ({ default: m.UnitPreview })))
+const SubjectSelect = lazy(() => import('@/pages/SubjectSelect').then((m) => ({ default: m.SubjectSelect })))
+const UnitSelect = lazy(() => import('@/pages/UnitSelect').then((m) => ({ default: m.UnitSelect })))
+const UnitHome = lazy(() => import('@/pages/UnitHome').then((m) => ({ default: m.UnitHome })))
 
 function Loading() {
   return (
@@ -143,6 +146,9 @@ export default function App() {
             <Route path="/bossrush" element={<RequireLogin><BossRush /></RequireLogin>} />
             <Route path="/basic" element={<RequireLogin><BasicPractice /></RequireLogin>} />
             <Route path="/teacher" element={<TeacherDashboard />} />
+            <Route path="/subjects" element={<RequireLogin><SubjectSelect /></RequireLogin>} />
+            <Route path="/subject/:subjectId" element={<RequireLogin><UnitSelect /></RequireLogin>} />
+            <Route path="/unit/:unitId" element={<RequireLogin><UnitHome /></RequireLogin>} />
             <Route path="/unit-preview" element={<UnitPreview />} />
             <Route path="*" element={<RequireLogin><MainMenu /></RequireLogin>} />
           </Routes>

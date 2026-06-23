@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
+import { findUnit } from '@/content/registry'
 import { lawAndRightsUnit } from '@/content/units/lawAndRights'
 import { ContentProblemCard } from '@/content/components/ContentProblemCard'
 import type { ContentProblem } from '@/content/types'
@@ -21,30 +22,47 @@ const MECHANIC_LABEL: Record<string, string> = {
 }
 
 /**
- * 단원 미리보기 — 합의한 문제 데이터가 실제 화면에 어떻게 보이는지
- * 눈으로 확인하고 손으로 풀어보는 임시 페이지. (미니게임 연결 전 단계)
+ * 단원 미리보기 — 합의한 문제 데이터를 실제 카드로 풀어보는 화면.
+ * ?unit=<id>      특정 단원 (기본: 법과 인권)
+ * ?chapter=<id>   특정 챕터만 풀기 (없으면 단원 전체)
  */
 export function UnitPreview() {
-  const entries: Entry[] = useMemo(
-    () =>
-      lawAndRightsUnit.chapters.flatMap((ch) =>
-        ch.problems.map((problem, i) => ({
-          chapterTitle: ch.title,
-          chapterIntro: ch.intro,
-          mechanic: ch.mechanic,
-          firstOfChapter: i === 0,
-          problem,
-        })),
-      ),
-    [],
-  )
+  const [params] = useSearchParams()
+  const unit = findUnit(params.get('unit') ?? '') ?? lawAndRightsUnit
+  const chapterId = params.get('chapter')
+
+  const entries: Entry[] = useMemo(() => {
+    const chapters = chapterId
+      ? unit.chapters.filter((c) => c.id === chapterId)
+      : unit.chapters
+    return chapters.flatMap((ch) =>
+      ch.problems.map((problem, i) => ({
+        chapterTitle: ch.title,
+        chapterIntro: ch.intro,
+        mechanic: ch.mechanic,
+        firstOfChapter: i === 0,
+        problem,
+      })),
+    )
+  }, [unit, chapterId])
 
   const [idx, setIdx] = useState(0)
   const [score, setScore] = useState({ correct: 0, answered: 0 })
   const [resultThis, setResultThis] = useState<boolean | null>(null)
 
+  // 빈 챕터 방어
+  if (entries.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-white/70">
+        <p>아직 이 챕터에 문제가 없어요.</p>
+        <Link to={`/unit/${unit.id}`} className="underline">← 챕터로 돌아가기</Link>
+      </div>
+    )
+  }
+
   const entry = entries[idx]
   const atEnd = idx >= entries.length - 1
+  const backTo = `/unit/${unit.id}`
 
   const handleResult = (correct: boolean) => {
     setResultThis(correct)
@@ -66,7 +84,7 @@ export function UnitPreview() {
     <div className="min-h-screen px-4 py-6 flex flex-col items-center gap-5">
       {/* 헤더 */}
       <div className="w-full max-w-xl flex items-center justify-between">
-        <Link to="/" className="text-sm text-white/60 hover:text-white">← 메뉴</Link>
+        <Link to={backTo} className="text-sm text-white/60 hover:text-white">← 챕터</Link>
         <div className="text-sm text-white/70">
           {idx + 1} / {entries.length} · 맞힘 {score.correct}/{score.answered}
         </div>
@@ -74,9 +92,9 @@ export function UnitPreview() {
 
       <div className="w-full max-w-xl text-center">
         <p className="text-xs text-indigo-300/80">
-          {lawAndRightsUnit.subject} {lawAndRightsUnit.grade} · {lawAndRightsUnit.theme}
+          {unit.subject} {unit.grade} · {unit.theme}
         </p>
-        <h1 className="text-xl font-black text-white">{lawAndRightsUnit.title} — 미리보기</h1>
+        <h1 className="text-xl font-black text-white">{unit.title}</h1>
       </div>
 
       {/* 챕터 인트로 (챕터 첫 문제에서만) */}
@@ -108,12 +126,20 @@ export function UnitPreview() {
             <p className="text-lg font-bold text-white">
               🏁 끝! 총 {score.correct} / {score.answered} 문제를 맞혔어요.
             </p>
-            <button
-              onClick={restart}
-              className="px-5 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition"
-            >
-              처음부터 다시
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={restart}
+                className="px-5 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition"
+              >
+                처음부터 다시
+              </button>
+              <Link
+                to={backTo}
+                className="px-5 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 transition"
+              >
+                챕터로
+              </Link>
+            </div>
           </div>
         ) : (
           <button
