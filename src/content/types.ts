@@ -59,8 +59,10 @@ export interface ChapterDef {
   id: string
   title: string
   mechanic: MechanicId
-  /** 챕터 도입 서사 (히어로 톤) */
+  /** 챕터 도입 서사 (게임 안 한 줄 안내) */
   intro?: string
+  /** 챕터 시작 스토리 대사 (시작 전 오버레이로 표시) */
+  story?: string[]
   /** 문제 통(pool) — 계속 추가만 하면 됨 */
   problems: ContentProblem[]
 }

@@ -10,6 +10,11 @@ export const chapter5: ChapterDef = {
   title: '인권을 지킨 사람들',
   mechanic: 'boss',
   intro: '"권리는 내가 정하는 거야!" 편견 빌런이 나타났어요. 인권을 지킨 사람들의 이야기로 빌런을 무찔러요!',
+  story: [
+    '"권리는 힘센 내가 정하는 거야!" 편견 빌런이 나타났어요.',
+    '하지만 역사 속엔 인권을 지켜온 용감한 사람들이 있었죠.',
+    '그들의 이야기로 빌런의 편견을 무너뜨리자!',
+  ],
   problems: [
     {
       id: 'c3-6', kind: 'mcq', difficulty: 2, source: '교육과정',

@@ -10,6 +10,11 @@ export const chapter3: ChapterDef = {
   title: '여러 가지 법',
   mechanic: 'matching',
   intro: '도시의 법전이 뒤섞여버렸어요! 각 법과 그 법이 하는 일을 알맞게 이어 붙여 법전을 되살려요.',
+  story: [
+    '우리 생활 속엔 수많은 법이 숨어 있어요.',
+    '어떤 법이 무슨 일을 하는지 알아야 진짜 수호자!',
+    '법과 하는 일을 알맞게 짝지어 법전을 되살리자!',
+  ],
   problems: [
     {
       id: 'c3m-1', kind: 'matching', difficulty: 2, source: '1회 6·7·8·10번 종합',

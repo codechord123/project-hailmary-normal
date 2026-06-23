@@ -10,6 +10,11 @@ export const chapter4: ChapterDef = {
   title: '인권이란 무엇일까',
   mechanic: 'oxrush',
   intro: '인권에 대한 진술이 번개처럼 지나가요! 맞으면 ⭕, 틀리면 ❌ — 빠르게 판단해요.',
+  story: [
+    '편견의 안개가 번개처럼 몰려와요!',
+    '인권에 대한 진실과 거짓을 빠르게 가려내야 해요.',
+    '⭕와 ❌로 번개처럼 판단해, 안개를 걷어내자!',
+  ],
   problems: [
     // OX (번개에서 사용)
     { id: 'ir-1', kind: 'ox', difficulty: 1, source: '교육과정', statement: '인권은 사람이라면 누구나 가진다.', answer: true },

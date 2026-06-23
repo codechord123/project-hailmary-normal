@@ -11,6 +11,11 @@ export const chapter2: ChapterDef = {
   title: '법은 무슨 일을 할까',
   mechanic: 'sorting',
   intro: '여러 사례가 뒤섞였어요. 각 사례가 법의 어떤 "역할"인지 알맞은 바구니에 분류해요!',
+  story: [
+    '도시의 법전이 뒤죽박죽 흩어져버렸어요.',
+    '각 법이 무슨 "역할"을 하는지 기억하나요?',
+    '사례를 알맞은 역할 바구니에 담아 법전을 정리하자!',
+  ],
   problems: [
     {
       id: 'c2-sort1', kind: 'matching', difficulty: 2, source: '교육과정',

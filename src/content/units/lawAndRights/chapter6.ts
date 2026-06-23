@@ -10,6 +10,11 @@ export const chapter6: ChapterDef = {
   title: '인권을 지키는 방법',
   mechanic: 'finalboss',
   intro: '마지막 관문! 사람들의 권리를 빼앗으려는 "권리침해 대마왕"과의 결전이에요. 배운 모든 것을 쏟아부어요!',
+  story: [
+    '마지막 결전! "권리침해 대마왕"이 모두의 권리를 빼앗으려 해요.',
+    '평등권·자유권·참정권·사회권·청구권… 우리가 지켜야 할 권리들.',
+    '그동안 배운 모든 힘을 모아, 권리 수호자의 이름으로 막아내자!',
+  ],
   problems: [
     {
       id: 'c4-17', kind: 'mcq', difficulty: 2, source: '1회 17번',

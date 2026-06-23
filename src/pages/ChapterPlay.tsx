@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
 import { useProgress } from '@/content/progress'
 import { awardAnswer, awardClear } from '@/content/rewards'
+import { ContentStoryOverlay } from '@/content/components/ContentStoryOverlay'
 import { DefenseGame } from '@/content/minigames/DefenseGame'
 import { MatchingGame } from '@/content/minigames/MatchingGame'
 import { BossGame } from '@/content/minigames/BossGame'
@@ -19,8 +21,22 @@ export function ChapterPlay() {
   const chapter = unit?.chapters.find((c) => c.id === chapterId)
   const recordAnswer = useProgress((s) => s.recordAnswer)
   const recordClear = useProgress((s) => s.recordClear)
+  const [startedId, setStartedId] = useState<string | null>(null)
 
   if (!unit || !chapter) return <Navigate to="/subjects" replace />
+
+  // 챕터 시작 전 스토리 오버레이 (챕터마다 한 번)
+  if (chapter.story && chapter.story.length > 0 && startedId !== chapter.id) {
+    return (
+      <ContentStoryOverlay
+        hero={unit.narrative?.hero ?? unit.theme}
+        title={chapter.title}
+        lines={chapter.story}
+        startLabel={unit.narrative?.startLabel ?? '시작'}
+        onStart={() => setStartedId(chapter.id)}
+      />
+    )
+  }
 
   const backToUnit = () => navigate(`/unit/${unit.id}`)
   const onAnswer = (problemId: string, correct: boolean) => {
