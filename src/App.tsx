@@ -49,6 +49,8 @@ const SubjectSelect = lazy(() => import('@/pages/SubjectSelect').then((m) => ({ 
 const UnitSelect = lazy(() => import('@/pages/UnitSelect').then((m) => ({ default: m.UnitSelect })))
 const UnitHome = lazy(() => import('@/pages/UnitHome').then((m) => ({ default: m.UnitHome })))
 const ChapterPlay = lazy(() => import('@/pages/ChapterPlay').then((m) => ({ default: m.ChapterPlay })))
+const TimeAttackContent = lazy(() => import('@/pages/TimeAttackContent').then((m) => ({ default: m.TimeAttackContent })))
+const EndlessContent = lazy(() => import('@/pages/EndlessContent').then((m) => ({ default: m.EndlessContent })))
 
 function Loading() {
   return (
@@ -151,6 +153,8 @@ export default function App() {
             <Route path="/subject/:subjectId" element={<RequireLogin><UnitSelect /></RequireLogin>} />
             <Route path="/unit/:unitId" element={<RequireLogin><UnitHome /></RequireLogin>} />
             <Route path="/play/:unitId/:chapterId" element={<RequireLogin><ChapterPlay /></RequireLogin>} />
+            <Route path="/unit/:unitId/timeattack" element={<RequireLogin><TimeAttackContent /></RequireLogin>} />
+            <Route path="/unit/:unitId/endless" element={<RequireLogin><EndlessContent /></RequireLogin>} />
             <Route path="/unit-preview" element={<UnitPreview />} />
             <Route path="*" element={<RequireLogin><MainMenu /></RequireLogin>} />
           </Routes>

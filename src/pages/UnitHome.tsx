@@ -79,8 +79,18 @@ export function UnitHome() {
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-bold text-white/70">⚔️ 도전 모드</h2>
           <div className="grid grid-cols-2 gap-2">
-            <ModeSoon icon="⏱" label="타임 어택" />
-            <ModeSoon icon="🌌" label="끝없는 도전" />
+            <Link
+              to={`/unit/${unit.id}/timeattack`}
+              className="rounded-xl bg-gradient-to-br from-red-500/30 to-rose-700/30 border border-rose-300/40 text-center p-3 text-sm font-bold text-white hover:brightness-110 transition"
+            >
+              <div className="text-2xl">⏱</div>타임 어택
+            </Link>
+            <Link
+              to={`/unit/${unit.id}/endless`}
+              className="rounded-xl bg-gradient-to-br from-purple-600/30 to-indigo-700/30 border border-indigo-300/40 text-center p-3 text-sm font-bold text-white hover:brightness-110 transition"
+            >
+              <div className="text-2xl">🌌</div>끝없는 도전
+            </Link>
           </div>
         </section>
 
