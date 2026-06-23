@@ -33,12 +33,12 @@ export function Login() {
         const r2 = await loginStudent(name, password)
         if (!r2.ok) { setError(r2.reason); return }
         switchToStudent(name.trim())
-        navigate('/')
+        navigate('/subjects')
       } else {
         const r = await loginStudent(name, password)
         if (!r.ok) { setError(r.reason); return }
         switchToStudent(name.trim())
-        navigate('/')
+        navigate('/subjects')
       }
     } finally {
       setBusy(false)

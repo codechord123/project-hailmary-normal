@@ -21,17 +21,26 @@ export function UnitSelect() {
       </div>
 
       <div className="w-full max-w-xl flex flex-col gap-3">
-        {subject.units.map((u) => (
-          <Link
-            key={u.id}
-            to={`/unit/${u.id}`}
-            className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-5 flex flex-col gap-1"
-          >
-            <span className="text-xs text-indigo-300/80">{u.grade} · {u.theme}</span>
-            <span className="text-lg font-bold text-white">{u.title}</span>
-            <span className="text-xs text-white/50">{u.chapters.length}개 챕터</span>
-          </Link>
-        ))}
+        {subject.units.map((u) => {
+          const meta = u.kind === 'content' ? u.def : u
+          // content → 단원 챕터 화면, legacy → 기존 게임 허브로
+          const to = u.kind === 'content' ? `/unit/${u.def.id}` : u.route
+          const sub =
+            u.kind === 'content'
+              ? `${u.def.chapters.length}개 챕터`
+              : '기존 게임 전체 (항해·타임어택 등)'
+          return (
+            <Link
+              key={meta.id}
+              to={to}
+              className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-5 flex flex-col gap-1"
+            >
+              <span className="text-xs text-indigo-300/80">{meta.grade} · {meta.theme}</span>
+              <span className="text-lg font-bold text-white">{meta.title}</span>
+              <span className="text-xs text-white/50">{sub}</span>
+            </Link>
+          )
+        })}
       </div>
     </div>
   )
