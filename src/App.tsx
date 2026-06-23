@@ -44,6 +44,7 @@ const TimeAttack = lazy(() => import('@/pages/TimeAttack').then((m) => ({ defaul
 const BossRush = lazy(() => import('@/pages/BossRush').then((m) => ({ default: m.BossRush })))
 const BasicPractice = lazy(() => import('@/pages/BasicPractice').then((m) => ({ default: m.BasicPractice })))
 const TeacherDashboard = lazy(() => import('@/pages/TeacherDashboard').then((m) => ({ default: m.TeacherDashboard })))
+const UnitPreview = lazy(() => import('@/pages/UnitPreview').then((m) => ({ default: m.UnitPreview })))
 
 function Loading() {
   return (
@@ -142,6 +143,7 @@ export default function App() {
             <Route path="/bossrush" element={<RequireLogin><BossRush /></RequireLogin>} />
             <Route path="/basic" element={<RequireLogin><BasicPractice /></RequireLogin>} />
             <Route path="/teacher" element={<TeacherDashboard />} />
+            <Route path="/unit-preview" element={<UnitPreview />} />
             <Route path="*" element={<RequireLogin><MainMenu /></RequireLogin>} />
           </Routes>
         </Suspense>
