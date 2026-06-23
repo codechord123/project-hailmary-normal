@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
+import { sfx } from '@/lib/sfx'
+import { ConfettiBurst } from '@/components/ConfettiBurst'
 
 interface Props {
   problems: ContentProblem[]
@@ -57,6 +59,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
     if (status !== 'play') return
     const ok = v === problem.answer
     onAnswer?.(problem.id, ok)
+    sfx[ok ? 'correct' : 'wrong']()
     setFlash(ok ? 'ok' : 'no')
     setTimeout(() => setFlash(null), 160)
     if (ok) {
@@ -66,7 +69,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
       setScore((s) => s + 10 + c * 2)
       const cc = correctCount + 1
       setCorrectCount(cc)
-      if (cc >= goal) setStatus('clear')
+      if (cc >= goal) { setStatus('clear'); sfx.clear() }
     } else {
       setCombo(0)
       setHearts((h) => {
@@ -85,10 +88,13 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
 
   if (status === 'clear') {
     return (
-      <Result emoji="⚡" title="번개처럼 통과!"
-        lines={[`정답 ${correctCount}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo }) }}
-        secondary={{ label: '다시 하기', onClick: restart }} />
+      <>
+        <ConfettiBurst show />
+        <Result emoji="⚡" title="번개처럼 통과!"
+          lines={[`정답 ${correctCount}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
+          primary={{ label: '완료', onClick: () => onClear({ score, bestCombo }) }}
+          secondary={{ label: '다시 하기', onClick: restart }} />
+      </>
     )
   }
   if (status === 'over') {

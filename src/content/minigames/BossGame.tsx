@@ -2,6 +2,8 @@ import { useCallback, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { judgeContent } from '@/content/judge'
+import { sfx } from '@/lib/sfx'
+import { ConfettiBurst } from '@/components/ConfettiBurst'
 
 interface Props {
   problems: ContentProblem[]
@@ -66,6 +68,7 @@ export function BossGame({
   const resolve = (correct: boolean) => {
     if (status !== 'play') return
     onAnswer?.(problem.id, correct)
+    sfx[correct ? 'correct' : 'wrong']()
     if (correct) {
       const newCombo = combo + 1
       setCombo(newCombo)
@@ -76,7 +79,7 @@ export function BossGame({
       setTimeout(() => setReact('idle'), 400)
       setBossHp((hp) => {
         const next = Math.max(0, hp - damage)
-        if (next <= 0) setStatus('clear')
+        if (next <= 0) { setStatus('clear'); sfx.clear() }
         return next
       })
       if (bossHp - damage > 0) setTimeout(advance, 500)
@@ -110,10 +113,13 @@ export function BossGame({
 
   if (status === 'clear') {
     return (
-      <Result emoji="🎉" title={`${bossName}을(를) 무찔렀어요!`}
-        lines={[`최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo }) }}
-        secondary={{ label: '다시 하기', onClick: restart }} />
+      <>
+        <ConfettiBurst show />
+        <Result emoji="🎉" title={`${bossName}을(를) 무찔렀어요!`}
+          lines={[`최고 콤보 ${bestCombo}`, `점수 ${score}`]}
+          primary={{ label: '완료', onClick: () => onClear({ score, bestCombo }) }}
+          secondary={{ label: '다시 하기', onClick: restart }} />
+      </>
     )
   }
   if (status === 'over') {

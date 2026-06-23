@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
+import { sfx } from '@/lib/sfx'
+import { ConfettiBurst } from '@/components/ConfettiBurst'
 
 interface Props {
   problems: ContentProblem[]
@@ -75,7 +77,9 @@ export function MatchingGame({ problems, title, intro, onClear, onExit }: Props)
       const nextMatched = new Set(matched).add(pairId)
       setMatched(nextMatched)
       setSelected(null)
+      sfx[nextMatched.size >= total ? 'clear' : 'correct']()
     } else {
+      sfx.wrong()
       setMistakes((m) => m + 1)
       setWrong(pairId)
       setTimeout(() => setWrong(null), 350)
@@ -93,6 +97,7 @@ export function MatchingGame({ problems, title, intro, onClear, onExit }: Props)
   if (done) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
+        <ConfettiBurst show />
         <div className="text-6xl">📜</div>
         <h1 className="text-2xl font-black text-white">법전을 복구했어요!</h1>
         <div className="text-white/70 flex flex-col gap-1">

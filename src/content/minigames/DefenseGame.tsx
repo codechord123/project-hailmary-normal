@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { judgeContent } from '@/content/judge'
+import { sfx } from '@/lib/sfx'
+import { ConfettiBurst } from '@/components/ConfettiBurst'
 
 interface Props {
   problems: ContentProblem[]
@@ -112,6 +114,7 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
   useEffect(() => {
     if (killed >= goal && status === 'play') {
       setStatus('clear')
+      sfx.clear()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [killed])
@@ -121,6 +124,7 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
       const lane = lanes[laneIdx]
       if (!lane) return
       onAnswer?.(lane.problem.id, correct)
+      sfx[correct ? 'correct' : 'wrong']()
       if (correct) {
         setKillAnim(laneIdx)
         setFlash('hit')
@@ -171,13 +175,16 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
   // ── 결과 화면 ──
   if (status === 'clear') {
     return (
-      <Result
-        emoji="🎉"
-        title="도시를 지켜냈어요!"
-        lines={[`처치 ${killed}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo }) }}
-        secondary={{ label: '다시 하기', onClick: restart }}
-      />
+      <>
+        <ConfettiBurst show />
+        <Result
+          emoji="🎉"
+          title="도시를 지켜냈어요!"
+          lines={[`처치 ${killed}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
+          primary={{ label: '완료', onClick: () => onClear({ score, bestCombo }) }}
+          secondary={{ label: '다시 하기', onClick: restart }}
+        />
+      </>
     )
   }
   if (status === 'over') {

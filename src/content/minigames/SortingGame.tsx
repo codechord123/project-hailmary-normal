@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
+import { sfx } from '@/lib/sfx'
+import { ConfettiBurst } from '@/components/ConfettiBurst'
 
 interface Props {
   problems: ContentProblem[]
@@ -67,6 +69,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   if (status === 'clear') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
+        <ConfettiBurst show />
         <div className="text-6xl">🗂️</div>
         <h1 className="text-2xl font-black text-white">분류 완료!</h1>
         <div className="text-white/70">실수 {mistakes}번</div>
@@ -83,19 +86,21 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
     const item = items.find((it) => it.idx === selected)
     if (!item) return
     if (item.category === category) {
+      sfx.correct()
       const next = { ...assigned, [selected]: category }
       setAssigned(next)
       setSelected(null)
       onAward?.(true)
       if (Object.keys(next).length >= items.length) {
         // 라운드 완료 → 다음 라운드 또는 클리어
-        if (roundIdx + 1 >= rounds.length) setStatus('clear')
+        if (roundIdx + 1 >= rounds.length) { setStatus('clear'); sfx.clear() }
         else {
           setRoundIdx((r) => r + 1)
           setAssigned({})
         }
       }
     } else {
+      sfx.wrong()
       setMistakes((m) => m + 1)
       setWrong(selected)
       onAward?.(false)
