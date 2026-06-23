@@ -93,13 +93,13 @@ export function MainMenu() {
           🚀 항해 시작
         </Link>
 
-        {/* 새 학습 단원 (책꽂이) 입구 */}
+        {/* 과목 선택(책꽂이)으로 돌아가기 */}
         <Link
           to="/subjects"
           onClick={start}
           className="px-6 py-4 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold text-lg border border-indigo-300/40 hover:brightness-110 active:scale-95 transition text-center"
         >
-          📚 학습 단원 (사회 · 법과 인권)
+          📚 과목 선택으로
         </Link>
 
         {/* 도전 모드 */}

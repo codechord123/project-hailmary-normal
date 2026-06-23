@@ -41,7 +41,7 @@ export const SUBJECTS: SubjectGroup[] = [
         title: '헤일메리 분수 미션',
         theme: '우주 항해사',
         // 기존 게임 허브(MainMenu) — 항해 시작·타임어택·끝없는 항해 등 전체 시스템
-        route: '/',
+        route: '/math',
       },
     ],
   },

@@ -6,7 +6,6 @@ import { useActiveUnit } from '@/content/activeUnit'
 import { useUnitProgress } from '@/content/progress'
 import { useGameStore } from '@/store/gameStore'
 import { computeLevelInfo } from '@/lib/leveling'
-import { CharacterAvatar } from '@/components/CharacterAvatar'
 
 const MECHANIC: Record<string, { label: string; icon: string }> = {
   defense: { label: '디펜스', icon: '🛡️' },
@@ -58,7 +57,7 @@ export function UnitHome() {
       <div className="text-center flex flex-col items-center">
         <p className="text-xs text-indigo-300/80">{unit.subject} {unit.grade}</p>
         <h1 className="text-2xl font-black text-white">{unit.title}</h1>
-        <div className="my-2"><CharacterAvatar size={96} /></div>
+        <div className="my-2 text-6xl">{subject?.icon ?? '📘'}</div>
         <p className="text-space-accent font-bold">⭐ {rank}</p>
         {n?.tagline && <p className="mt-1 text-sm text-white/65 max-w-md">{n.tagline}</p>}
         <div className="mt-2 inline-flex gap-2 text-xs">

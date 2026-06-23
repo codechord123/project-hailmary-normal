@@ -127,7 +127,9 @@ export default function App() {
         <Suspense fallback={<Loading />}>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/" element={<RequireLogin><MainMenu /></RequireLogin>} />
+            {/* 첫 화면 = 과목 선택. 수학(헤일메리) 메인 메뉴는 /math 로 이동 */}
+            <Route path="/" element={<RequireLogin><Navigate to="/subjects" replace /></RequireLogin>} />
+            <Route path="/math" element={<RequireLogin><MainMenu /></RequireLogin>} />
             <Route path="/chapters" element={<RequireLogin><ChapterSelect /></RequireLogin>} />
             <Route path="/chapter/1" element={<RequireLogin><Chapter1 /></RequireLogin>} />
             <Route path="/chapter/1/clear" element={<RequireLogin><Chapter1Clear /></RequireLogin>} />
@@ -160,7 +162,7 @@ export default function App() {
             <Route path="/unit/:unitId/wrong" element={<RequireLogin><WrongNotesContent /></RequireLogin>} />
             <Route path="/unit/:unitId/achievements" element={<RequireLogin><AchievementsContent /></RequireLogin>} />
             <Route path="/unit-preview" element={<UnitPreview />} />
-            <Route path="*" element={<RequireLogin><MainMenu /></RequireLogin>} />
+            <Route path="*" element={<RequireLogin><Navigate to="/subjects" replace /></RequireLogin>} />
           </Routes>
         </Suspense>
         <AchievementToast />
