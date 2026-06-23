@@ -68,6 +68,19 @@ export function UnitHome() {
           <span className="px-2 py-1 rounded-full bg-amber-400/15 text-amber-100">⭐ {totalStars}</span>
         </div>
         <p className="mt-1 text-[11px] text-white/35">레벨·에너지·의상·상점은 모든 과목과 공유돼요</p>
+        {/* 단원 진행도 */}
+        <div className="mt-3 w-full max-w-xs">
+          <div className="flex justify-between text-[11px] text-white/55 mb-1">
+            <span>단원 진행도</span>
+            <span>{prog.cleared.length} / {unit.chapters.length} 챕터</span>
+          </div>
+          <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-indigo-400 to-violet-500 transition-all"
+              style={{ width: `${(prog.cleared.length / unit.chapters.length) * 100}%` }}
+            />
+          </div>
+        </div>
       </div>
 
       <div className="w-full max-w-xl flex flex-col gap-5">
