@@ -3,7 +3,10 @@ import { Link, useParams, Navigate } from 'react-router-dom'
 import { findUnit, subjectOfUnit } from '@/content/registry'
 import { rankTitle } from '@/content/types'
 import { useActiveUnit } from '@/content/activeUnit'
-import { useUnitProgress, levelOf } from '@/content/progress'
+import { useUnitProgress } from '@/content/progress'
+import { useGameStore } from '@/store/gameStore'
+import { computeLevelInfo } from '@/lib/leveling'
+import { CharacterAvatar } from '@/components/CharacterAvatar'
 
 const MECHANIC: Record<string, { label: string; icon: string }> = {
   defense: { label: '디펜스', icon: '🛡️' },
@@ -23,6 +26,9 @@ export function UnitHome() {
   const subject = subjectOfUnit(unitId)
   const setActiveUnit = useActiveUnit((s) => s.setActiveUnit)
   const prog = useUnitProgress(unitId)
+  // 공유 프로필 (과목·단원이 달라도 한 계정에서 공유)
+  const totalXp = useGameStore((s) => s.totalXp)
+  const energy = useGameStore((s) => s.energy)
 
   // 이 단원을 "지금 학습 중인 단원"으로 기억
   useEffect(() => {
@@ -33,7 +39,7 @@ export function UnitHome() {
 
   const n = unit.narrative
   const startLabel = n?.startLabel ?? '🚀 모험 시작'
-  const level = levelOf(prog.xp)
+  const level = computeLevelInfo(totalXp).level
   const totalStars = Object.values(prog.stars).reduce((a, b) => a + b, 0)
   const rank = rankTitle(n, level)
 
@@ -48,17 +54,19 @@ export function UnitHome() {
         </Link>
       </div>
 
-      {/* 컨셉 헤더 */}
-      <div className="text-center">
+      {/* 컨셉 헤더 (캐릭터·레벨·에너지는 공유 프로필) */}
+      <div className="text-center flex flex-col items-center">
         <p className="text-xs text-indigo-300/80">{unit.subject} {unit.grade}</p>
         <h1 className="text-2xl font-black text-white">{unit.title}</h1>
-        <p className="mt-2 text-space-accent font-bold">⭐ {rank}</p>
+        <div className="my-2"><CharacterAvatar size={96} /></div>
+        <p className="text-space-accent font-bold">⭐ {rank}</p>
         {n?.tagline && <p className="mt-1 text-sm text-white/65 max-w-md">{n.tagline}</p>}
         <div className="mt-2 inline-flex gap-2 text-xs">
           <span className="px-2 py-1 rounded-full bg-indigo-500/20 text-indigo-100 font-bold">Lv.{level}</span>
+          <span className="px-2 py-1 rounded-full bg-yellow-400/15 text-yellow-100">⚡ {energy}</span>
           <span className="px-2 py-1 rounded-full bg-amber-400/15 text-amber-100">⭐ {totalStars}</span>
-          <span className="px-2 py-1 rounded-full bg-white/10 text-white/70">XP {prog.xp}</span>
         </div>
+        <p className="mt-1 text-[11px] text-white/35">레벨·에너지·의상·상점은 모든 과목과 공유돼요</p>
       </div>
 
       <div className="w-full max-w-xl flex flex-col gap-5">
@@ -110,10 +118,10 @@ export function UnitHome() {
           </div>
         </section>
 
-        {/* 학습 도구 (자리) */}
+        {/* 학습 도구 — 오답 노트는 단원별, 나머지는 공유 */}
         <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-bold text-white/70">📚 학습 도구</h2>
-          <div className="grid grid-cols-3 gap-2">
+          <h2 className="text-sm font-bold text-white/70">📚 학습 도구 · 단원</h2>
+          <div className="grid grid-cols-2 gap-2">
             <Link
               to={`/unit/${unit.id}/wrong`}
               className="rounded-xl bg-rose-400/10 border border-rose-300/30 text-rose-100 text-center p-2 text-xs hover:bg-rose-400/20 transition"
@@ -127,9 +135,19 @@ export function UnitHome() {
               to={`/unit/${unit.id}/achievements`}
               className="rounded-xl bg-amber-400/10 border border-amber-300/30 text-amber-100 text-center p-2 text-xs hover:bg-amber-400/20 transition"
             >
-              <div className="text-lg">🏅</div>업적
+              <div className="text-lg">📊</div>단원 기록
             </Link>
-            <ModeSoon icon="🛍️" label="상점" small />
+          </div>
+        </section>
+
+        {/* 공유 — 모든 과목 공통 */}
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-bold text-white/70">🌐 공유 (모든 과목 공통)</h2>
+          <div className="grid grid-cols-4 gap-2">
+            <SharedLink to="/shop" icon="🛍️" label="상점" />
+            <SharedLink to="/cabinet" icon="🎒" label="캐비닛" />
+            <SharedLink to="/achievements" icon="🏅" label="업적" />
+            <SharedLink to="/leaderboard" icon="🏆" label="리더보드" />
           </div>
         </section>
 
@@ -144,17 +162,15 @@ export function UnitHome() {
   )
 }
 
-/** 아직 객관식용으로 연결 전인 모드 자리 */
-function ModeSoon({ icon, label, small }: { icon: string; label: string; small?: boolean }) {
+/** 모든 과목이 공유하는 기본 기능 링크 */
+function SharedLink({ to, icon, label }: { to: string; icon: string; label: string }) {
   return (
-    <div
-      className={`rounded-xl bg-white/5 border border-white/10 text-center text-white/40 ${
-        small ? 'p-2 text-xs' : 'p-3 text-sm'
-      }`}
+    <Link
+      to={to}
+      className="rounded-xl bg-white/5 border border-white/10 text-center p-2 text-xs text-white/80 hover:bg-white/10 transition"
     >
-      <div className={small ? 'text-lg' : 'text-2xl'}>{icon}</div>
+      <div className="text-lg">{icon}</div>
       {label}
-      <div className="text-[10px] text-white/30 mt-0.5">곧 추가</div>
-    </div>
+    </Link>
   )
 }

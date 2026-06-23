@@ -1,16 +1,20 @@
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
-import { useUnitProgress, ACHIEVEMENTS, levelOf } from '@/content/progress'
+import { useUnitProgress, ACHIEVEMENTS } from '@/content/progress'
+import { useGameStore } from '@/store/gameStore'
+import { computeLevelInfo } from '@/lib/leveling'
 
-/** 업적 — 단원에서 달성한 업적과 레벨을 보여 준다. */
+/** 단원 기록 — 단원별 별점·기록·업적 + 공유 레벨. */
 export function AchievementsContent() {
   const { unitId = '' } = useParams()
   const unit = findUnit(unitId)
   const prog = useUnitProgress(unitId)
+  const totalXp = useGameStore((s) => s.totalXp)
 
   if (!unit) return <Navigate to="/subjects" replace />
 
-  const level = levelOf(prog.xp)
+  const info = computeLevelInfo(totalXp)
+  const level = info.level
   const totalStars = Object.values(prog.stars).reduce((a, b) => a + b, 0)
 
   return (
@@ -22,8 +26,8 @@ export function AchievementsContent() {
       <h1 className="text-xl font-black text-white">🏅 업적 · 기록</h1>
 
       <div className="w-full max-w-xl grid grid-cols-3 gap-2 text-center">
-        <Stat label="레벨" value={`Lv.${level}`} />
-        <Stat label="XP" value={String(prog.xp)} />
+        <Stat label="레벨(공유)" value={`Lv.${level}`} />
+        <Stat label="XP(공유)" value={String(totalXp)} />
         <Stat label="별" value={`⭐${totalStars}`} />
         <Stat label="클리어" value={`${prog.cleared.length}/${unit.chapters.length}`} />
         <Stat label="타임어택" value={String(prog.bestTimeAttack)} />

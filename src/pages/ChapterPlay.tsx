@@ -1,6 +1,7 @@
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
 import { useProgress } from '@/content/progress'
+import { awardAnswer, awardClear } from '@/content/rewards'
 import { DefenseGame } from '@/content/minigames/DefenseGame'
 import { MatchingGame } from '@/content/minigames/MatchingGame'
 import { BossGame } from '@/content/minigames/BossGame'
@@ -20,9 +21,13 @@ export function ChapterPlay() {
   if (!unit || !chapter) return <Navigate to="/subjects" replace />
 
   const backToUnit = () => navigate(`/unit/${unit.id}`)
-  const onAnswer = (problemId: string, correct: boolean) => recordAnswer(unit.id, problemId, correct)
+  const onAnswer = (problemId: string, correct: boolean) => {
+    recordAnswer(unit.id, problemId, correct) // 단원별 오답 노트
+    awardAnswer(correct) // 공유 XP·에너지
+  }
   const onClear = () => {
-    recordClear(unit.id, chapter.id, 3, unit.chapters.length)
+    recordClear(unit.id, chapter.id, 3, unit.chapters.length) // 단원별 별점
+    awardClear() // 공유 XP·에너지
     backToUnit()
   }
 

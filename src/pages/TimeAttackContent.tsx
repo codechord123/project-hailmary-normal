@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
 import { QuickAnswer } from '@/content/components/QuickAnswer'
 import { useProgress } from '@/content/progress'
+import { awardAnswer } from '@/content/rewards'
 import { sfx } from '@/lib/sfx'
 import type { ContentProblem } from '@/content/types'
 
@@ -63,6 +64,7 @@ export function TimeAttackContent() {
   const handleResult = (ok: boolean) => {
     if (status !== 'play') return
     recordAnswer(unit.id, problem.id, ok)
+    awardAnswer(ok)
     setAnswered((a) => a + 1)
     if (ok) {
       sfx.correct()
