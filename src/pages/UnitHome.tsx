@@ -1,5 +1,7 @@
+import { useEffect } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { findUnit, subjectOfUnit } from '@/content/registry'
+import { useActiveUnit } from '@/content/activeUnit'
 
 const MECHANIC: Record<string, { label: string; icon: string }> = {
   defense: { label: '디펜스', icon: '🛡️' },
@@ -8,13 +10,27 @@ const MECHANIC: Record<string, { label: string; icon: string }> = {
   finalboss: { label: '최종보스', icon: '🐉' },
 }
 
-/** 책꽂이 3단계 — 단원 안에서 챕터 선택 */
+/**
+ * 단원 컨셉 허브 — 수학편 메인 메뉴와 "같은 구조", 단원 컨셉으로 옷을 입힌 화면.
+ * 모험 시작(챕터) · 도전 모드 · 학습 도구 자리를 갖춘다.
+ * (도전 모드/학습 도구는 다음 단계에서 객관식용으로 붙일 예정 — 지금은 자리만)
+ */
 export function UnitHome() {
   const { unitId = '' } = useParams()
   const unit = findUnit(unitId)
   const subject = subjectOfUnit(unitId)
+  const setActiveUnit = useActiveUnit((s) => s.setActiveUnit)
+
+  // 이 단원을 "지금 학습 중인 단원"으로 기억
+  useEffect(() => {
+    if (unit) setActiveUnit(unit.id)
+  }, [unit, setActiveUnit])
 
   if (!unit) return <Navigate to="/subjects" replace />
+
+  const n = unit.narrative
+  const hero = n?.hero ?? unit.theme
+  const startLabel = n?.startLabel ?? '🚀 모험 시작'
 
   return (
     <div className="min-h-screen px-4 py-8 flex flex-col items-center gap-6">
@@ -27,39 +43,79 @@ export function UnitHome() {
         </Link>
       </div>
 
+      {/* 컨셉 헤더 */}
       <div className="text-center">
-        <p className="text-xs text-indigo-300/80">{unit.subject} {unit.grade} · {unit.theme}</p>
+        <p className="text-xs text-indigo-300/80">{unit.subject} {unit.grade}</p>
         <h1 className="text-2xl font-black text-white">{unit.title}</h1>
-        <p className="mt-1 text-sm text-white/60">챕터를 골라 시작해요.</p>
+        <p className="mt-2 text-space-accent font-bold">⭐ {hero}</p>
+        {n?.tagline && <p className="mt-1 text-sm text-white/65 max-w-md">{n.tagline}</p>}
       </div>
 
-      <div className="w-full max-w-xl flex flex-col gap-3">
-        {unit.chapters.map((ch, i) => {
-          const m = MECHANIC[ch.mechanic] ?? { label: ch.mechanic, icon: '🎮' }
-          return (
-            <Link
-              key={ch.id}
-              to={`/play/${unit.id}/${ch.id}`}
-              className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-4 flex items-center gap-4"
-            >
-              <span className="text-3xl">{m.icon}</span>
-              <span className="flex flex-col flex-1">
-                <span className="text-xs text-white/50">챕터 {i + 1} · {m.label}</span>
-                <span className="text-lg font-bold text-white">{ch.title}</span>
-                <span className="text-xs text-white/45">문제 {ch.problems.length}개</span>
-              </span>
-              <span className="text-white/40">▶</span>
-            </Link>
-          )
-        })}
-      </div>
+      <div className="w-full max-w-xl flex flex-col gap-5">
+        {/* 모험 시작 — 챕터(항해) */}
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-bold text-white/70">{startLabel}</h2>
+          {unit.chapters.map((ch, i) => {
+            const m = MECHANIC[ch.mechanic] ?? { label: ch.mechanic, icon: '🎮' }
+            return (
+              <Link
+                key={ch.id}
+                to={`/play/${unit.id}/${ch.id}`}
+                className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-4 flex items-center gap-4"
+              >
+                <span className="text-3xl">{m.icon}</span>
+                <span className="flex flex-col flex-1">
+                  <span className="text-xs text-white/50">챕터 {i + 1} · {m.label}</span>
+                  <span className="text-lg font-bold text-white">{ch.title}</span>
+                  <span className="text-xs text-white/45">문제 {ch.problems.length}개</span>
+                </span>
+                <span className="text-white/40">▶</span>
+              </Link>
+            )
+          })}
+        </section>
 
-      <Link
-        to={`/unit-preview?unit=${unit.id}`}
-        className="text-sm text-white/55 hover:text-white underline underline-offset-4"
-      >
-        전체 문제 한 번에 풀어보기 →
-      </Link>
+        {/* 도전 모드 (자리 — 다음 단계에서 객관식용으로 연결) */}
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-bold text-white/70">⚔️ 도전 모드</h2>
+          <div className="grid grid-cols-2 gap-2">
+            <ModeSoon icon="⏱" label="타임 어택" />
+            <ModeSoon icon="🌌" label="끝없는 도전" />
+          </div>
+        </section>
+
+        {/* 학습 도구 (자리) */}
+        <section className="flex flex-col gap-2">
+          <h2 className="text-sm font-bold text-white/70">📚 학습 도구</h2>
+          <div className="grid grid-cols-3 gap-2">
+            <ModeSoon icon="📝" label="오답 노트" small />
+            <ModeSoon icon="🏅" label="업적" small />
+            <ModeSoon icon="🛍️" label="상점" small />
+          </div>
+        </section>
+
+        <Link
+          to={`/unit-preview?unit=${unit.id}`}
+          className="self-center text-sm text-white/55 hover:text-white underline underline-offset-4"
+        >
+          전체 문제 카드로 풀어보기 →
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+/** 아직 객관식용으로 연결 전인 모드 자리 */
+function ModeSoon({ icon, label, small }: { icon: string; label: string; small?: boolean }) {
+  return (
+    <div
+      className={`rounded-xl bg-white/5 border border-white/10 text-center text-white/40 ${
+        small ? 'p-2 text-xs' : 'p-3 text-sm'
+      }`}
+    >
+      <div className={small ? 'text-lg' : 'text-2xl'}>{icon}</div>
+      {label}
+      <div className="text-[10px] text-white/30 mt-0.5">곧 추가</div>
     </div>
   )
 }

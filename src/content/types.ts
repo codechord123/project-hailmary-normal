@@ -65,12 +65,30 @@ export interface ChapterDef {
   problems: ContentProblem[]
 }
 
+/**
+ * 단원별 세계관·서사(컨셉).
+ * 구조(템플릿)는 모든 단원이 같고, 이 부분만 단원마다 갈아끼운다.
+ * 예) 수학=우주 항해사 / 사회=권리 수호자.
+ */
+export interface UnitNarrative {
+  /** 주인공 호칭 (예: "권리 수호자", "우주 항해사") */
+  hero: string
+  /** 허브 화면 부제 (한 줄 소개) */
+  tagline: string
+  /** 모험 시작 버튼 문구 (예: "🛡️ 모험 시작", "🚀 항해 시작") */
+  startLabel: string
+  /** 자원/생명 이름 (예: "정의 에너지", "산소") */
+  resourceName?: string
+}
+
 export interface UnitDef {
   id: string
   subject: string
   grade: string
   title: string
-  /** 세계관 테마 */
+  /** 세계관 테마 (짧은 키워드) */
   theme: string
+  /** 세계관·서사 상세 (허브 화면 등에 사용) */
+  narrative?: UnitNarrative
   chapters: ChapterDef[]
 }

@@ -15,5 +15,11 @@ export const lawAndRightsUnit: UnitDef = {
   grade: '5-1',
   title: '법의 역할과 인권',
   theme: '권리 수호자 히어로',
+  narrative: {
+    hero: '권리 수호자',
+    tagline: '법과 인권의 힘으로 도시를 지키는 수호자가 되어 보자!',
+    startLabel: '🛡️ 모험 시작',
+    resourceName: '정의 에너지',
+  },
   chapters: [chapter1, chapter2, chapter3, chapter4],
 }
