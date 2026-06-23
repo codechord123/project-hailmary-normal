@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { findUnit, subjectOfUnit } from '@/content/registry'
+import { rankTitle } from '@/content/types'
 import { useActiveUnit } from '@/content/activeUnit'
 import { useUnitProgress, levelOf } from '@/content/progress'
 
@@ -31,10 +32,10 @@ export function UnitHome() {
   if (!unit) return <Navigate to="/subjects" replace />
 
   const n = unit.narrative
-  const hero = n?.hero ?? unit.theme
   const startLabel = n?.startLabel ?? '🚀 모험 시작'
   const level = levelOf(prog.xp)
   const totalStars = Object.values(prog.stars).reduce((a, b) => a + b, 0)
+  const rank = rankTitle(n, level)
 
   return (
     <div className="min-h-screen px-4 py-8 flex flex-col items-center gap-6">
@@ -51,7 +52,7 @@ export function UnitHome() {
       <div className="text-center">
         <p className="text-xs text-indigo-300/80">{unit.subject} {unit.grade}</p>
         <h1 className="text-2xl font-black text-white">{unit.title}</h1>
-        <p className="mt-2 text-space-accent font-bold">⭐ {hero}</p>
+        <p className="mt-2 text-space-accent font-bold">⭐ {rank}</p>
         {n?.tagline && <p className="mt-1 text-sm text-white/65 max-w-md">{n.tagline}</p>}
         <div className="mt-2 inline-flex gap-2 text-xs">
           <span className="px-2 py-1 rounded-full bg-indigo-500/20 text-indigo-100 font-bold">Lv.{level}</span>

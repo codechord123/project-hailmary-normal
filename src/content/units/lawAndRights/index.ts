@@ -20,6 +20,13 @@ export const lawAndRightsUnit: UnitDef = {
     tagline: '법과 인권의 힘으로 도시를 지키는 수호자가 되어 보자!',
     startLabel: '🛡️ 모험 시작',
     resourceName: '정의 에너지',
+    ranks: [
+      { level: 1, title: '견습 수호자' },
+      { level: 2, title: '정의 수습생' },
+      { level: 3, title: '권리 수호자' },
+      { level: 5, title: '법의 기사' },
+      { level: 8, title: '인권 챔피언' },
+    ],
   },
   chapters: [chapter1, chapter2, chapter3, chapter4],
 }

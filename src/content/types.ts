@@ -79,6 +79,17 @@ export interface UnitNarrative {
   startLabel: string
   /** 자원/생명 이름 (예: "정의 에너지", "산소") */
   resourceName?: string
+  /** 레벨별 칭호 (RPG 성장감). level 이상일 때 해당 칭호 적용 */
+  ranks?: { level: number; title: string }[]
+}
+
+/** 현재 레벨에 맞는 칭호 (가장 높은 충족 등급) */
+export function rankTitle(narrative: UnitNarrative | undefined, level: number): string {
+  const ranks = narrative?.ranks
+  if (!ranks || ranks.length === 0) return narrative?.hero ?? ''
+  let title = ranks[0].title
+  for (const r of ranks) if (level >= r.level) title = r.title
+  return title
 }
 
 export interface UnitDef {
