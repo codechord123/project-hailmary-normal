@@ -22,7 +22,7 @@ interface Card {
   text: string
 }
 
-const PAIRS_PER_ROUND = 4 // 한 라운드 4쌍(8장) — 화면 과밀 방지
+const PAIRS_PER_ROUND = 8 // 한 라운드 8쌍(4×4, 16장)
 
 const shuffle = <T,>(arr: T[]): T[] => {
   const a = [...arr]
@@ -152,7 +152,7 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
         <p className="mt-2 text-xs text-white/55 text-center leading-relaxed">{intro}</p>
       )}
 
-      <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+      <div className="mt-4 grid grid-cols-4 gap-1.5 sm:gap-2">
         {cards.map((c) => {
           const up = isUp(c)
           const done = matched.has(c.cardId)
@@ -162,7 +162,7 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
               onClick={() => flip(c)}
               disabled={up || busy}
               aria-label={up ? c.text : '뒤집힌 카드'}
-              className={`relative h-24 sm:h-28 rounded-xl border-2 p-2 text-xs sm:text-sm font-bold flex items-center justify-center text-center transition ${
+              className={`relative h-20 sm:h-24 rounded-lg border-2 p-1 text-[10px] sm:text-xs font-bold flex items-center justify-center text-center leading-tight transition ${
                 done
                   ? 'border-green-400/60 bg-green-400/10 text-green-100'
                   : up

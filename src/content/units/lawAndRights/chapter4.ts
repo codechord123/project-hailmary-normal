@@ -29,6 +29,13 @@ export const chapter4: ChapterDef = {
     { id: 'c3-3', kind: 'ox', difficulty: 2, source: '교육과정', statement: '인권은 다른 사람이 힘으로 함부로 빼앗을 수 있다.', answer: false },
     { id: 'c3-20', kind: 'ox', difficulty: 1, source: '교육과정', statement: '인권은 어른이 되어야만 생기는 권리이다.', answer: false },
     { id: 'c3-15', kind: 'ox', difficulty: 1, source: '교육과정', statement: '남자와 여자, 어린이와 어른 모두 똑같이 존중받아야 한다.', answer: true },
+    // ── 심화(헷갈리기 쉬운) OX ──
+    { id: 'ir-9', kind: 'ox', difficulty: 3, source: '교육과정', statement: '인권은 법으로 정해야만 비로소 생기는 권리이다.', answer: false },
+    { id: 'ir-10', kind: 'ox', difficulty: 3, source: '교육과정', statement: '다수가 동의하면 한 사람의 인권을 빼앗아도 된다.', answer: false },
+    { id: 'ir-11', kind: 'ox', difficulty: 3, source: '교육과정', statement: '의무를 다한 사람에게만 인권이 주어진다.', answer: false },
+    { id: 'ir-12', kind: 'ox', difficulty: 2, source: '교육과정', statement: '다른 나라에서 온 사람도 인권을 존중받아야 한다.', answer: true },
+    { id: 'ir-13', kind: 'ox', difficulty: 3, source: '교육과정', statement: '인권은 한 번 보장되면 다시는 침해되지 않는다.', answer: false },
+    { id: 'ir-14', kind: 'ox', difficulty: 2, source: '교육과정', statement: '내가 남의 인권을 존중하면 나의 권리도 함께 보호된다.', answer: true },
 
     // 객관식 (카드 풀이/복습용)
     {

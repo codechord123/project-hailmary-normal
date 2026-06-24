@@ -40,6 +40,31 @@ export const chapter3: ChapterDef = {
       ],
     },
     {
+      id: 'c3m-3', kind: 'matching', difficulty: 2, source: '교육과정',
+      prompt: '법과 그 법이 하는 일을 알맞게 짝지어요.',
+      pairs: [
+        { left: '의료법', right: '안전한 의료 서비스를 받도록' },
+        { left: '건축법', right: '튼튼하고 안전한 건물을 짓도록' },
+        { left: '근로 기준법', right: '일하는 사람(노동자)의 권리를 보호' },
+        { left: '개인 정보 보호법', right: '개인 정보를 함부로 쓰지 못하게' },
+        { left: '학교 폭력 예방법', right: '학교 폭력을 막고 학생을 보호' },
+        { left: '청소년 보호법', right: '청소년에게 해로운 것으로부터 보호' },
+        { left: '재난 안전법', right: '재난으로부터 국민을 보호' },
+      ],
+    },
+    {
+      id: 'c3m-4', kind: 'matching', difficulty: 2, source: '교육과정',
+      prompt: '법과 그 법이 하는 일을 알맞게 짝지어요.',
+      pairs: [
+        { left: '식품 위생법', right: '위생적인 음식을 먹을 수 있도록' },
+        { left: '국민 건강 보험법', right: '아플 때 치료비 부담을 덜어 줌' },
+        { left: '교통 약자 이동 편의 증진법', right: '이동이 불편한 사람의 이동을 도움' },
+        { left: '도서관법', right: '누구나 책을 읽을 수 있도록' },
+        { left: '환경 정책 기본법', right: '깨끗한 환경을 지키도록' },
+        { left: '주민 등록법', right: '국민을 등록해 행정을 돕도록' },
+      ],
+    },
+    {
       id: 'c2-7', kind: 'mcq', difficulty: 2, source: '1회 7번',
       figure: '한 사람이 컴퓨터로 창작물을 이용하며 "다른 사람의 창작물을 이용할 때는 정당한 비용을 내야 해." 라고 말하는 그림',
       prompt: '이 그림과 관련 있는 법으로 알맞은 것은?',

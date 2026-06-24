@@ -16,7 +16,7 @@ export const BALANCE = {
     hitsToKillDefault: 4, // 보스 처치에 필요한 정답 수
   },
   oxrush: {
-    goal: 10, // 클리어 정답 수
+    goal: 12, // 클리어 정답 수
     qBaseSec: 7, // 문항 기본 제한시간
     qMinSec: 3, // 문항 최소 제한시간
     qRampPerCorrect: 0.4, // 정답당 단축 폭
