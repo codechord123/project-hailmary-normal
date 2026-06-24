@@ -51,6 +51,7 @@ const UnitHome = lazy(() => import('@/pages/UnitHome').then((m) => ({ default: m
 const ChapterPlay = lazy(() => import('@/pages/ChapterPlay').then((m) => ({ default: m.ChapterPlay })))
 const TimeAttackContent = lazy(() => import('@/pages/TimeAttackContent').then((m) => ({ default: m.TimeAttackContent })))
 const EndlessContent = lazy(() => import('@/pages/EndlessContent').then((m) => ({ default: m.EndlessContent })))
+const DailyChallengeContent = lazy(() => import('@/pages/DailyChallengeContent').then((m) => ({ default: m.DailyChallengeContent })))
 const WrongNotesContent = lazy(() => import('@/pages/WrongNotesContent').then((m) => ({ default: m.WrongNotesContent })))
 const AchievementsContent = lazy(() => import('@/pages/AchievementsContent').then((m) => ({ default: m.AchievementsContent })))
 const UnitTeacherDashboard = lazy(() => import('@/pages/UnitTeacherDashboard').then((m) => ({ default: m.UnitTeacherDashboard })))
@@ -160,6 +161,7 @@ export default function App() {
             <Route path="/play/:unitId/:chapterId" element={<RequireLogin><ChapterPlay /></RequireLogin>} />
             <Route path="/unit/:unitId/timeattack" element={<RequireLogin><TimeAttackContent /></RequireLogin>} />
             <Route path="/unit/:unitId/endless" element={<RequireLogin><EndlessContent /></RequireLogin>} />
+            <Route path="/unit/:unitId/daily" element={<RequireLogin><DailyChallengeContent /></RequireLogin>} />
             <Route path="/unit/:unitId/wrong" element={<RequireLogin><WrongNotesContent /></RequireLogin>} />
             <Route path="/unit/:unitId/achievements" element={<RequireLogin><AchievementsContent /></RequireLogin>} />
             <Route path="/teacher/unit/:unitId" element={<UnitTeacherDashboard />} />

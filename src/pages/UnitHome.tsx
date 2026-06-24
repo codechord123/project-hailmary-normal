@@ -146,9 +146,20 @@ export function UnitHome() {
           })}
         </section>
 
-        {/* 도전 모드 (자리 — 다음 단계에서 객관식용으로 연결) */}
+        {/* 도전 모드 */}
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-bold text-white/70">⚔️ 도전 모드</h2>
+          <Link
+            to={`/unit/${unit.id}/daily`}
+            className="rounded-xl bg-gradient-to-br from-amber-500/30 to-orange-600/30 border border-amber-300/40 p-3 flex items-center gap-3 text-white hover:brightness-110 transition"
+          >
+            <span className="text-2xl">📅</span>
+            <span className="flex-1">
+              <span className="block text-sm font-bold">오늘의 도전</span>
+              <span className="block text-[11px] text-white/60">매일 새 문제 5개 · 완료하면 보너스 🎁</span>
+            </span>
+            <span className="text-xs text-amber-200">🔥 {currentStreak}일</span>
+          </Link>
           <div className="grid grid-cols-2 gap-2">
             <Link
               to={`/unit/${unit.id}/timeattack`}
