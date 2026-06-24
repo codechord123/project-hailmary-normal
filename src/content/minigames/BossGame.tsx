@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { judgeContent } from '@/content/judge'
@@ -22,6 +22,7 @@ interface Props {
 }
 
 const START_HEARTS = 3
+const COUNTER_PERIOD = 14 // 보스 반격 주기(초) — 답하면 리셋
 
 const shuffle = <T,>(arr: T[]): T[] => {
   const a = [...arr]
@@ -61,7 +62,28 @@ export function BossGame({
   const [feedback, setFeedback] = useState<string | null>(null)
   const [mcqPick, setMcqPick] = useState<number[]>([])
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
+  const [counter, setCounter] = useState(COUNTER_PERIOD)
   const juice = useGameJuice()
+
+  // 반격 타이머 — 0이 되면 보스가 반격(하트 -1). 답하면 매번 리셋.
+  useEffect(() => {
+    if (status !== 'play') return
+    if (counter <= 0) {
+      setReact('attack')
+      setTimeout(() => setReact('idle'), 400)
+      setFeedback('🗯️ 빌런의 반격! 더 빨리 답해요!')
+      setCombo(0)
+      setHearts((h) => {
+        const n = h - 1
+        if (n <= 0) setStatus('over')
+        return n
+      })
+      setCounter(COUNTER_PERIOD)
+      return
+    }
+    const id = setTimeout(() => setCounter((c) => c - 1), 1000)
+    return () => clearTimeout(id)
+  }, [counter, status])
 
   const advance = () => {
     setMcqPick([])
@@ -70,6 +92,7 @@ export function BossGame({
 
   const resolve = (correct: boolean) => {
     if (status !== 'play') return
+    setCounter(COUNTER_PERIOD) // 답하면 반격 타이머 리셋
     onAnswer?.(problem.id, correct)
     sfx[correct ? 'correct' : 'wrong']()
     if (correct) {
@@ -106,6 +129,7 @@ export function BossGame({
     setProblem(queueRef.current.shift()!)
     setBossHp(100)
     setHearts(START_HEARTS)
+    setCounter(COUNTER_PERIOD)
     setCombo(0)
     setBestCombo(0)
     setScore(0)
@@ -170,7 +194,8 @@ export function BossGame({
           />
         </div>
         <div className="text-[11px] text-white/50 flex gap-3">
-          <span>HP {bossHp}</span><span>콤보 {combo}</span><span>점수 {score}</span>
+          <span>HP {bossHp}</span><span>콤보 {combo}</span>
+          <span className={counter <= 4 ? 'text-red-400 font-bold' : ''}>⚔️ {counter}s</span>
         </div>
       </div>
 

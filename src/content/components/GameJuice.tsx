@@ -7,6 +7,11 @@ import { GradeFlash, gradeFor, type Grade } from '@/components/arcade/GradeFlash
  * correct(combo): 데미지 숫자 + PERFECT/GREAT 등급 플래시
  * wrong(): 화면 흔들기 카운터 증가 (ScreenShake 와 함께 사용)
  */
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
 export function useGameJuice() {
   const [shake, setShake] = useState(0)
   const [grade, setGrade] = useState<Grade>(null)
@@ -15,6 +20,7 @@ export function useGameJuice() {
 
   const correct = useCallback(
     (combo: number, opts?: { x?: number; amount?: number; crit?: boolean }) => {
+      if (prefersReducedMotion()) return
       const id = ++idRef.current
       const crit = opts?.crit ?? combo >= 4
       const amount = opts?.amount ?? 10 + combo * 2
@@ -41,9 +47,9 @@ export function JuiceOverlay({
   combo: number
 }) {
   return (
-    <>
+    <div aria-hidden className="contents">
       <DamageFloater numbers={floaters} />
       <GradeFlash grade={grade} combo={combo} />
-    </>
+    </div>
   )
 }

@@ -72,6 +72,8 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
   const [mcqPick, setMcqPick] = useState<number[]>([])
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
   const juice = useGameJuice()
+  // 처치가 쌓일수록 점진 가속 (하한 9초, 초반 2회는 가속 없음)
+  const advanceSec = Math.max(9, LANE_ADVANCE_SEC - Math.max(0, killed - 2) * 0.6)
 
   // 첫 스폰
   useEffect(() => {
@@ -103,7 +105,7 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
     if (status !== 'play') return
     lanes.forEach((l, i) => {
       if (!l) return
-      const progress = (now - l.spawnTime) / 1000 / LANE_ADVANCE_SEC
+      const progress = (now - l.spawnTime) / 1000 / advanceSec
       if (progress >= 1) {
         loseHeart('💢 혼란이 도시에 닿았어요!')
         setLanes((cur) => cur.map((c, j) => (j === i ? spawnThreat(i) : c)))
@@ -234,7 +236,7 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
       {/* 레인 */}
       <div className="mt-3 space-y-2">
         {lanes.map((lane, i) => {
-          const progress = lane ? Math.min(1, (now - lane.spawnTime) / 1000 / LANE_ADVANCE_SEC) : 0
+          const progress = lane ? Math.min(1, (now - lane.spawnTime) / 1000 / advanceSec) : 0
           const isTarget = target === i
           const isKill = killAnim === i
           const enemyIdx = lane ? (lane.uid.charCodeAt(0) + i) % ENEMIES.length : 0
