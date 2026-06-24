@@ -4,6 +4,7 @@ import type { ContentProblem } from '@/content/types'
 import { judgeContent } from '@/content/judge'
 import { sfx } from '@/lib/sfx'
 import { ConfettiBurst } from '@/components/ConfettiBurst'
+import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 
 interface Props {
   problems: ContentProblem[]
@@ -69,6 +70,7 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
   const [killAnim, setKillAnim] = useState<number | null>(null)
   const [mcqPick, setMcqPick] = useState<number[]>([])
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
+  const juice = useGameJuice()
 
   // 첫 스폰
   useEffect(() => {
@@ -134,6 +136,7 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
         setCombo(newCombo)
         setBestCombo((b) => Math.max(b, newCombo))
         setScore((s) => s + 100 + newCombo * 20)
+        juice.correct(newCombo, { x: (laneIdx + 0.5) / LANES })
         setKilled((k) => k + 1)
         setFeedback(null)
         setLanes((cur) => cur.map((c, j) => (j === laneIdx ? spawnThreat(laneIdx) : c)))
@@ -201,10 +204,11 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
 
   return (
     <motion.div
-      className="min-h-screen px-4 sm:px-6 py-4 max-w-2xl mx-auto flex flex-col"
+      className="min-h-screen px-4 sm:px-6 py-4 max-w-2xl mx-auto flex flex-col relative"
       animate={flash === 'miss' ? { x: [0, -8, 8, -4, 0] } : { x: 0 }}
       transition={{ duration: 0.25 }}
     >
+      <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} />
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
         <div className="flex items-center gap-2 text-sm">
