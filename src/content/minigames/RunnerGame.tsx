@@ -4,6 +4,7 @@ import { sfx } from '@/lib/sfx'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 import { GameResult } from '@/content/components/GameResult'
 import { QuickAnswer } from '@/content/components/QuickAnswer'
+import { useLives, GameItemBar, HeartBar } from '@/content/components/GameItems'
 import { starsFromHearts } from '@/content/score'
 import { BALANCE } from '@/content/balance'
 
@@ -61,7 +62,7 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
   const rafRef = useRef(0)
   const queue = useRef<Quizable[]>([])
 
-  const [hearts, setHearts] = useState(START_HEARTS)
+  const lives = useLives(START_HEARTS)
   const [score, setScore] = useState(0)
   const [combo, setCombo] = useState(0)
   const [bestCombo, setBestCombo] = useState(0)
@@ -118,7 +119,7 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
                 invulnRef.current = 70
                 setCombo(0)
                 sfx.wrong()
-                setHearts((h) => { const n = h - 1; if (n <= 0) { runningRef.current = false; setStatus('over') } return n })
+                if (lives.lose()) { runningRef.current = false; setStatus('over') }
               }
             } else {
               e.hit = true
@@ -171,13 +172,13 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
     )
   }
 
-  const stars = starsFromHearts(hearts, START_HEARTS)
+  const stars = starsFromHearts(lives.hearts, START_HEARTS)
 
   const restart = () => {
     ents.current = []; carX.current = W / 2; invulnRef.current = 0
     obsTimer.current = 0; cardTimer.current = 0; elapsedRef.current = 0
     queue.current = shuffle(quizPool); pausedRef.current = false; runningRef.current = true
-    setHearts(START_HEARTS); setScore(0); setCombo(0); setBestCombo(0); setSolved(0)
+    lives.reset(); setScore(0); setCombo(0); setBestCombo(0); setSolved(0)
     setQuiz(null); setStatus('play')
   }
 
@@ -191,7 +192,7 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
     } else {
       sfx.wrong()
       setCombo(0)
-      setHearts((h) => { const n = h - 1; if (n <= 0) { runningRef.current = false; setStatus('over') } return n })
+      if (lives.lose()) { runningRef.current = false; setStatus('over') }
     }
     setQuiz(null)
     pausedRef.current = false
@@ -220,13 +221,20 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
         <div className="text-sm flex gap-3 items-center">
-          <span className="text-rose-300">{'❤️'.repeat(hearts)}{'🤍'.repeat(Math.max(0, START_HEARTS - hearts))}</span>
+          <HeartBar hearts={lives.hearts} max={lives.MAX_HEARTS} shielded={lives.shielded} />
           <span className="text-white/60 text-xs">📝 {solved}/{GOAL} · 점수 {score}</span>
         </div>
       </header>
 
       <div className="mt-1 text-center text-sm font-bold text-indigo-200">🚗 {title}</div>
       <div className="text-center text-[11px] text-white/45">차를 끌어 장애물은 피하고, 📝 문제 카드는 받아서 푸세요!</div>
+
+      <div className="mt-2">
+        <GameItemBar items={[
+          { id: 'shield', icon: '🛡️ 보호막', label: '충돌 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
+          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+        ]} />
+      </div>
 
       <canvas
         ref={canvasRef}

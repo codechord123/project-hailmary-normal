@@ -4,7 +4,9 @@ import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 import { GameResult } from '@/content/components/GameResult'
+import { useLives, GameItemBar, HeartBar } from '@/content/components/GameItems'
 import { starsFromMistakes } from '@/content/score'
+import { BALANCE } from '@/content/balance'
 
 interface Props {
   problems: ContentProblem[]
@@ -23,6 +25,7 @@ interface Card {
 }
 
 const PAIRS_PER_ROUND = 8 // 한 라운드 8쌍(4×4, 16장)
+const START_HEARTS = BALANCE.hearts
 
 const shuffle = <T,>(arr: T[]): T[] => {
   const a = [...arr]
@@ -65,10 +68,11 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
 
   const [flipped, setFlipped] = useState<number[]>([]) // 현재 뒤집힌(미매칭) cardId
   const [matched, setMatched] = useState<Set<number>>(new Set())
+  const lives = useLives(START_HEARTS)
   const [mistakes, setMistakes] = useState(0)
   const [combo, setCombo] = useState(0)
   const [busy, setBusy] = useState(false)
-  const [status, setStatus] = useState<'play' | 'clear'>('play')
+  const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
   const juice = useGameJuice()
 
   if (rounds.length === 0) {
@@ -83,7 +87,7 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
   const stars = starsFromMistakes(mistakes)
 
   const restart = () => {
-    setRoundIdx(0); setFlipped([]); setMatched(new Set())
+    setRoundIdx(0); setFlipped([]); setMatched(new Set()); lives.reset()
     setMistakes(0); setCombo(0); setBusy(false); setStatus('play')
   }
 
@@ -93,6 +97,14 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
         lines={[`실수 ${mistakes}번`]}
         primary={{ label: '완료', onClick: () => onClear({ mistakes, stars }) }}
         secondary={{ label: '다시 하기', onClick: restart }} />
+    )
+  }
+  if (status === 'over') {
+    return (
+      <GameResult emoji="🛑" title="하트를 다 썼어요…"
+        lines={[`실수 ${mistakes}번`, '다시 도전해 볼까요?']}
+        primary={{ label: '다시 도전', onClick: restart }}
+        secondary={{ label: '나가기', onClick: onExit }} />
     )
   }
 
@@ -124,8 +136,9 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
       setCombo(0)
       setMistakes((m) => m + 1)
       onAward?.(false)
+      const dead = lives.lose()
       setBusy(true)
-      setTimeout(() => { setFlipped([]); setBusy(false) }, 800)
+      setTimeout(() => { setFlipped([]); setBusy(false); if (dead) setStatus('over') }, 800)
     }
   }
 
@@ -136,9 +149,9 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
       <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} />
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
-        <div className="text-xs text-white/60 flex gap-3">
-          <span>라운드 {roundIdx + 1}/{rounds.length}</span>
-          <span>콤보 {combo}</span>
+        <div className="text-xs text-white/60 flex gap-3 items-center">
+          <HeartBar hearts={lives.hearts} max={lives.MAX_HEARTS} shielded={lives.shielded} />
+          <span>R{roundIdx + 1}/{rounds.length}</span>
           <span>실수 {mistakes}</span>
         </div>
       </header>
@@ -146,6 +159,13 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
       <div className="mt-2 rounded-xl bg-white/5 border border-white/10 px-4 py-2">
         <div className="text-sm font-bold text-indigo-200">🃏 {title}</div>
         <div className="text-xs text-white/60 mt-0.5">카드를 뒤집어 법과 하는 일의 짝을 맞춰요.</div>
+      </div>
+
+      <div className="mt-2">
+        <GameItemBar items={[
+          { id: 'shield', icon: '🛡️ 보호막', label: '실수 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
+          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+        ]} />
       </div>
 
       {intro && roundIdx === 0 && matched.size === 0 && flipped.length === 0 && (

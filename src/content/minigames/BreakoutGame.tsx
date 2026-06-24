@@ -4,6 +4,7 @@ import { sfx } from '@/lib/sfx'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 import { GameResult } from '@/content/components/GameResult'
 import { QuickAnswer } from '@/content/components/QuickAnswer'
+import { useLives, GameItemBar, HeartBar } from '@/content/components/GameItems'
 import { starsFromHearts } from '@/content/score'
 import { BALANCE } from '@/content/balance'
 
@@ -30,7 +31,6 @@ const COLS = 7
 const ROWS = 6
 const BRICK_H = 18
 const ITEM_VY = 2.3
-const MAX_HEARTS = 5
 const START_HEARTS = BALANCE.hearts
 
 const ITEM_EMOJI: Record<ItemType, string> = { quiz: '📝', points: '✨', expand: '⬌', slow: '🐢', life: '❤️' }
@@ -71,7 +71,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
   const quizQueue = useRef<Quizable[]>([])
   const bricksLeftRef = useRef(0)
 
-  const [hearts, setHearts] = useState(START_HEARTS)
+  const lives = useLives(START_HEARTS)
   const [score, setScore] = useState(0)
   const [combo, setCombo] = useState(0)
   const [bestCombo, setBestCombo] = useState(0)
@@ -107,7 +107,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
 
     const loseLife = () => {
       setCombo(0); sfx.wrong()
-      setHearts((h) => { const n = h - 1; if (n <= 0) { runningRef.current = false; setStatus('over') } return n })
+      if (lives.lose()) { runningRef.current = false; setStatus('over') }
       resetBall()
     }
 
@@ -158,7 +158,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
             items.current.splice(i, 1)
             if (it.type === 'quiz') { pausedRef.current = true; setQuiz(nextQuiz()); sfx.tick?.() }
             else if (it.type === 'points') { setScore((s) => s + 50); flashBuff('✨ +50점'); sfx.correct() }
-            else if (it.type === 'life') { setHearts((h) => Math.min(MAX_HEARTS, h + 1)); flashBuff('❤️ 생명 +1'); sfx.correct() }
+            else if (it.type === 'life') { lives.addLife(); flashBuff('❤️ 생명 +1'); sfx.correct() }
             else if (it.type === 'expand') { pwRef.current = PW * 1.6; expandFrames.current = 480; flashBuff('⬌ 패들 확장!'); sfx.correct() }
             else if (it.type === 'slow') { if (slowFrames.current === 0) { ball.current.vx *= 0.7; ball.current.vy *= 0.7 } slowFrames.current = 360; flashBuff('🐢 공 느려짐'); sfx.correct() }
           } else if (it.y > H) items.current.splice(i, 1)
@@ -197,13 +197,13 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     )
   }
 
-  const stars = starsFromHearts(hearts, START_HEARTS)
+  const stars = starsFromHearts(lives.hearts, START_HEARTS)
 
   const restart = () => {
     initBricks(); resetBall(); items.current = []; quizQueue.current = shuffle(quizPool)
     pwRef.current = PW; expandFrames.current = 0; slowFrames.current = 0
     pausedRef.current = false; runningRef.current = true
-    setHearts(START_HEARTS); setScore(0); setCombo(0); setBestCombo(0); setQuiz(null); setStatus('play')
+    lives.reset(); setScore(0); setCombo(0); setBestCombo(0); setQuiz(null); setStatus('play')
   }
 
   const onQuizResult = (correct: boolean) => {
@@ -250,11 +250,18 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
         <div className="text-sm flex gap-3 items-center">
-          <span className="text-rose-300">{'❤️'.repeat(hearts)}</span>
+          <HeartBar hearts={lives.hearts} max={lives.MAX_HEARTS} shielded={lives.shielded} />
           <span className="text-white/60 text-xs">벽돌 {bricksLeft} · 점수 {score}</span>
         </div>
       </header>
       <div className="mt-1 text-center text-sm font-bold text-indigo-200">🧱 {title}</div>
+
+      <div className="mt-2">
+        <GameItemBar items={[
+          { id: 'shield', icon: '🛡️ 보호막', label: '공 놓침 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
+          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+        ]} />
+      </div>
 
       <canvas
         ref={canvasRef}

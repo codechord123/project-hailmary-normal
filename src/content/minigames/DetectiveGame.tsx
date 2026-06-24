@@ -4,6 +4,7 @@ import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 import { GameResult } from '@/content/components/GameResult'
+import { useLives, GameItemBar, HeartBar } from '@/content/components/GameItems'
 import { starsFromHearts } from '@/content/score'
 import { BALANCE } from '@/content/balance'
 
@@ -54,7 +55,7 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
   })
   const [eliminated, setEliminated] = useState<number[]>([])
   const [picked, setPicked] = useState<number | null>(null)
-  const [hearts, setHearts] = useState(START_HEARTS)
+  const lives = useLives(START_HEARTS)
   const [solved, setSolved] = useState(0)
   const [combo, setCombo] = useState(0)
   const [bestCombo, setBestCombo] = useState(0)
@@ -73,7 +74,7 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
   }
 
   const goal = Math.min(GOAL, Math.max(3, pool.length))
-  const stars = starsFromHearts(hearts, START_HEARTS)
+  const stars = starsFromHearts(lives.hearts, START_HEARTS)
   const answerIdx = problem.correctIndexes[0]
 
   const advance = () => {
@@ -115,19 +116,16 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
     } else {
       sfx.wrong()
       setCombo(0)
-      setHearts((h) => {
-        const n = h - 1
-        if (n <= 0) setStatus('over')
-        return n
-      })
-      setTimeout(() => { if (hearts - 1 > 0) advance() }, 1100)
+      const dead = lives.lose()
+      if (dead) setStatus('over')
+      setTimeout(() => { if (!dead) advance() }, 1100)
     }
   }
 
   const restart = () => {
     queueRef.current = shuffle(pool)
     setProblem(queueRef.current.shift()!)
-    setEliminated([]); setPicked(null); setHearts(START_HEARTS); setSolved(0)
+    setEliminated([]); setPicked(null); lives.reset(); setSolved(0)
     setCombo(0); setBestCombo(0); setScore(0); setHintsLeft(HINTS); setStatus('play')
   }
 
@@ -154,7 +152,7 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
         <div className="text-sm flex gap-3 items-center">
-          <span className="text-rose-300">{'❤️'.repeat(hearts)}{'🤍'.repeat(Math.max(0, START_HEARTS - hearts))}</span>
+          <HeartBar hearts={lives.hearts} max={lives.MAX_HEARTS} shielded={lives.shielded} />
           <span className="text-white/60 text-xs">해결 {solved}/{goal}</span>
         </div>
       </header>
@@ -162,6 +160,13 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
       <div className="mt-2 rounded-xl bg-white/5 border border-white/10 px-4 py-2">
         <div className="text-sm font-bold text-indigo-200">🕵️ {title}</div>
         <div className="text-xs text-white/60 mt-0.5">용의자 중 범인(정답)을 지목하세요. 콤보 {combo}</div>
+      </div>
+
+      <div className="mt-2">
+        <GameItemBar items={[
+          { id: 'shield', icon: '🛡️ 보호막', label: '오답 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
+          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+        ]} />
       </div>
 
       {/* 사건 파일 */}

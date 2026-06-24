@@ -5,6 +5,7 @@ import { judgeContent } from '@/content/judge'
 import { sfx } from '@/lib/sfx'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 import { GameResult } from '@/content/components/GameResult'
+import { useLives, GameItemBar, HeartBar } from '@/content/components/GameItems'
 import { starsFromHearts } from '@/content/score'
 import { BALANCE } from '@/content/balance'
 
@@ -55,7 +56,7 @@ export function BossGame({
   })
   const damage = Math.ceil(100 / Math.max(1, hitsToKill))
   const [bossHp, setBossHp] = useState(100)
-  const [hearts, setHearts] = useState(START_HEARTS)
+  const lives = useLives(START_HEARTS)
   const [combo, setCombo] = useState(0)
   const [bestCombo, setBestCombo] = useState(0)
   const [score, setScore] = useState(0)
@@ -74,11 +75,7 @@ export function BossGame({
       setTimeout(() => setReact('idle'), 400)
       setFeedback('🗯️ 빌런의 반격! 더 빨리 답해요!')
       setCombo(0)
-      setHearts((h) => {
-        const n = h - 1
-        if (n <= 0) setStatus('over')
-        return n
-      })
+      if (lives.lose()) setStatus('over')
       setCounter(COUNTER_PERIOD)
       return
     }
@@ -121,12 +118,9 @@ export function BossGame({
           : ''
       setFeedback(`🗯️ 빗나갔어요! 정답: ${correctText}`)
       setTimeout(() => setReact('idle'), 400)
-      setHearts((h) => {
-        const next = h - 1
-        if (next <= 0) setStatus('over')
-        return next
-      })
-      if (hearts - 1 > 0) setTimeout(advance, 1100)
+      const dead = lives.lose()
+      if (dead) setStatus('over')
+      if (!dead) setTimeout(advance, 1100)
     }
   }
 
@@ -134,7 +128,7 @@ export function BossGame({
     queueRef.current = shuffle(problems)
     setProblem(queueRef.current.shift()!)
     setBossHp(100)
-    setHearts(START_HEARTS)
+    lives.reset()
     setCounter(COUNTER_PERIOD)
     setCombo(0)
     setBestCombo(0)
@@ -148,9 +142,9 @@ export function BossGame({
   if (status === 'clear') {
     return (
       <GameResult emoji="🎉" title={`${bossName}을(를) 무찔렀어요!`} confetti
-        stars={starsFromHearts(hearts, START_HEARTS)}
+        stars={starsFromHearts(lives.hearts, START_HEARTS)}
         lines={[`최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(hearts, START_HEARTS) }) }}
+        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(lives.hearts, START_HEARTS) }) }}
         secondary={{ label: '다시 하기', onClick: restart }} />
     )
   }
@@ -168,12 +162,17 @@ export function BossGame({
       <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} />
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
-        <div className="text-sm text-rose-300">
-          {'❤️'.repeat(hearts)}{'🤍'.repeat(Math.max(0, START_HEARTS - hearts))}
-        </div>
+        <HeartBar hearts={lives.hearts} max={lives.MAX_HEARTS} shielded={lives.shielded} />
       </header>
 
       <div className="mt-1 text-center text-sm font-bold text-indigo-200">👾 {title}</div>
+
+      <div className="mt-2">
+        <GameItemBar items={[
+          { id: 'shield', icon: '🛡️ 보호막', label: '반격 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
+          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+        ]} />
+      </div>
 
       {/* 보스 */}
       <div className="mt-3 flex flex-col items-center gap-2">

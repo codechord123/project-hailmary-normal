@@ -4,6 +4,7 @@ import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 import { GameResult } from '@/content/components/GameResult'
+import { useLives, GameItemBar, HeartBar } from '@/content/components/GameItems'
 import { starsFromHearts } from '@/content/score'
 import { BALANCE } from '@/content/balance'
 
@@ -42,7 +43,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
     [problems],
   )
   const [idx, setIdx] = useState(0)
-  const [hearts, setHearts] = useState(START_HEARTS)
+  const lives = useLives(START_HEARTS)
   const [correctCount, setCorrectCount] = useState(0)
   const [combo, setCombo] = useState(0)
   const [bestCombo, setBestCombo] = useState(0)
@@ -102,26 +103,22 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
       if (cc >= goal) { setStatus('clear'); sfx.clear() }
     } else {
       setCombo(0)
-      setHearts((h) => {
-        const n = h - 1
-        if (n <= 0) setStatus('over')
-        return n
-      })
+      if (lives.lose()) setStatus('over')
     }
     setIdx((i) => i + 1)
   }
 
   const restart = () => {
-    setIdx(0); setHearts(START_HEARTS); setCorrectCount(0); setCombo(0)
+    setIdx(0); lives.reset(); setCorrectCount(0); setCombo(0)
     setBestCombo(0); setScore(0); setFlash(null); setStatus('play')
   }
 
   if (status === 'clear') {
     return (
       <GameResult emoji="⚡" title="번개처럼 통과!" confetti
-        stars={starsFromHearts(hearts, START_HEARTS)}
+        stars={starsFromHearts(lives.hearts, START_HEARTS)}
         lines={[`정답 ${correctCount}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(hearts, START_HEARTS) }) }}
+        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(lives.hearts, START_HEARTS) }) }}
         secondary={{ label: '다시 하기', onClick: restart }} />
     )
   }
@@ -142,13 +139,19 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
         <div className="text-sm flex gap-3 items-center">
-          <span className="text-rose-300">{'❤️'.repeat(hearts)}{'🤍'.repeat(Math.max(0, START_HEARTS - hearts))}</span>
+          <HeartBar hearts={lives.hearts} max={lives.MAX_HEARTS} shielded={lives.shielded} />
           <span className="text-white/70">콤보 {combo}</span>
         </div>
       </header>
 
       <div className="text-center text-sm font-bold text-indigo-200">⚡ {title}</div>
       <div className="text-center text-xs text-white/55">정답 {correctCount} / {goal} · 점수 {score}</div>
+      <div className="mt-1">
+        <GameItemBar items={[
+          { id: 'shield', icon: '🛡️', label: '오답 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
+          { id: 'life', icon: '❤️', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+        ]} />
+      </div>
 
       {/* 문항 제한시간 바 */}
       <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">

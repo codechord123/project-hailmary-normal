@@ -4,6 +4,7 @@ import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 import { GameResult } from '@/content/components/GameResult'
+import { useLives, GameItemBar, HeartBar } from '@/content/components/GameItems'
 import { starsFromMistakes } from '@/content/score'
 import { BALANCE } from '@/content/balance'
 
@@ -22,6 +23,8 @@ interface Item {
   text: string
   category: string
 }
+
+const START_HEARTS = BALANCE.hearts
 
 const shuffle = <T,>(arr: T[]): T[] => {
   const a = [...arr]
@@ -62,6 +65,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   const [assigned, setAssigned] = useState<Record<number, string>>({})
   const bucketRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const [wrong, setWrong] = useState<number | null>(null)
+  const lives = useLives(START_HEARTS)
   const [mistakes, setMistakes] = useState(0)
   const [combo, setCombo] = useState(0)
   const [timeLeft, setTimeLeft] = useState(budget)
@@ -92,7 +96,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   const stars = starsFromMistakes(mistakes)
 
   const restart = () => {
-    setRoundIdx(0); setAssigned({}); setWrong(null)
+    setRoundIdx(0); setAssigned({}); setWrong(null); lives.reset()
     setMistakes(0); setCombo(0); setTimeLeft(budget); setStatus('play')
   }
 
@@ -106,9 +110,10 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   }
 
   if (status === 'over') {
+    const ranOut = timeLeft <= 0
     return (
-      <GameResult emoji="⏰" title="시간이 다 됐어요!"
-        lines={['다시 도전해 볼까요?']}
+      <GameResult emoji={ranOut ? '⏰' : '🛑'} title={ranOut ? '시간이 다 됐어요!' : '하트를 다 썼어요…'}
+        lines={[`실수 ${mistakes}번`, '다시 도전해 볼까요?']}
         primary={{ label: '다시 도전', onClick: restart }}
         secondary={{ label: '나가기', onClick: onExit }} />
     )
@@ -137,6 +142,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
       setWrong(itemIdx)
       setRevealCat(`'${item.text}' → '${item.category}'`)
       onAward?.(false)
+      if (lives.lose()) setStatus('over')
       setTimeout(() => setWrong(null), 350)
       setTimeout(() => setRevealCat(null), 1400)
     }
@@ -164,9 +170,9 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
       <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} />
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
-        <div className="text-xs text-white/60 flex gap-3">
-          <span>라운드 {roundIdx + 1}/{rounds.length}</span>
-          <span>콤보 {combo}</span>
+        <div className="text-xs text-white/60 flex gap-3 items-center">
+          <HeartBar hearts={lives.hearts} max={lives.MAX_HEARTS} shielded={lives.shielded} />
+          <span>R{roundIdx + 1}/{rounds.length}</span>
           <span className={lowTime ? 'text-red-400 font-bold' : ''}>⏱ {timeLeft}s</span>
         </div>
       </header>
@@ -179,6 +185,13 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
       <div className="mt-2 rounded-xl bg-white/5 border border-white/10 px-4 py-2">
         <div className="text-sm font-bold text-indigo-200">🗂️ {title}</div>
         <div className="text-xs text-white/60 mt-0.5">{round.prompt}</div>
+      </div>
+
+      <div className="mt-2">
+        <GameItemBar items={[
+          { id: 'shield', icon: '🛡️ 보호막', label: '실수 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
+          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+        ]} />
       </div>
 
       {intro && roundIdx === 0 && placedTotal === 0 && (
