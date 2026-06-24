@@ -272,9 +272,14 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
                 br.flash = 6; destroyBrick(br); sfx.hit()
                 continue
               }
-              br.hp -= 1; br.flash = 6; b.vy = -b.vy; fx.shake(3)
-              if (br.hp <= 0) { fx.freeze(2); destroyBrick(br); if (mult() >= 3) sfx.crit(); else sfx.hit() }
-              else { fx.burst(br.x + br.w / 2, br.y + BRICK_H / 2, { count: 4, color: '#fff', speed: 2 }); setScore((s) => s + 5); sfx.hit() }
+              br.flash = 6; b.vy = -b.vy; fx.shake(3)
+              if (br.hp <= 1) {
+                // 파괴 직전 — hp가 아직 1일 때 destroyBrick 호출(본문 실행 보장)
+                fx.freeze(2); destroyBrick(br); if (mult() >= 3) sfx.crit(); else sfx.hit()
+              } else {
+                br.hp -= 1
+                fx.burst(br.x + br.w / 2, br.y + BRICK_H / 2, { count: 4, color: '#fff', speed: 2 }); setScore((s) => s + 5); sfx.hit()
+              }
               break
             }
           }
