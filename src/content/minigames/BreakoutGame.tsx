@@ -294,11 +294,12 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         if (runningRef.current && bricksLeftRef.current <= 0) advanceLevel()
         else if (runningRef.current && balls.current.length === 0) loseLife()
 
-        // 일정 수의 벽돌을 깰 때마다 문제를 "큐에 적립"(게임 흐름을 끊지 않음)
+        // 일정 수의 벽돌을 깰 때마다 즉시 문제 팝업 — 풀어야 게임 진행
         if (runningRef.current && destroyedRef.current >= QUIZ_EVERY) {
           destroyedRef.current = 0
           pendingRef.current++
           setPending(pendingRef.current)
+          if (!pausedRef.current) { pausedRef.current = true; setQuiz(nextQuiz()) }
           sfx.tick?.()
         }
 
@@ -429,13 +430,6 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     lives.reset(); setScore(0); setCombo(0); setBestCombo(0); setPending(0); setQuiz(null); setStatus('play')
   }
 
-  // 쌓인 문제 풀기 시작 — 게임을 멈추고 첫 문제를 띄운다(이후 차례로)
-  const startSolving = () => {
-    if (pendingRef.current <= 0 || pausedRef.current || status !== 'play') return
-    pausedRef.current = true
-    setQuiz(nextQuiz())
-  }
-
   const onQuizResult = (correct: boolean) => {
     if (quiz) onAnswer?.(quiz.id, correct)
     if (correct) {
@@ -501,19 +495,6 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
       </header>
       <div className="mt-1 text-center text-sm font-bold text-indigo-200">🧱 {title}</div>
 
-      {/* 쌓인 문제 — 원할 때 눌러서 차례로 풀기(게임을 끊지 않음) */}
-      <button
-        onClick={startSolving}
-        disabled={pending <= 0}
-        className={`mt-2 w-full rounded-xl py-2 text-sm font-bold transition border ${
-          pending > 0
-            ? 'bg-amber-400/20 border-amber-300/60 text-amber-100 hover:bg-amber-400/30 animate-pulse'
-            : 'bg-white/5 border-white/10 text-white/35'
-        }`}
-      >
-        {pending > 0 ? `📝 쌓인 문제 ${pending}개 — 눌러서 차례로 풀기 (벽돌 보너스!)` : '📝 깨다 보면 문제가 여기 쌓여요'}
-      </button>
-
       <div className="mt-2 flex items-center gap-2">
         <div className="flex-1">
           <GameItemBar items={[
@@ -545,8 +526,8 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
       {quiz && (
         <div className="fixed inset-0 z-40 bg-black/70 flex items-center justify-center px-4">
           <div className="w-full max-w-md rounded-2xl bg-space-900 border border-white/15 p-5">
-            <div className="text-center text-sm font-bold text-amber-200 mb-1">📝 문제를 풀면 벽돌이 와르르!</div>
-            <div className="text-center text-[11px] text-white/50 mb-2">남은 문제 {pending}개 · 차례로 풀어요</div>
+            <div className="text-center text-sm font-bold text-amber-200 mb-1">📝 문제를 풀어야 계속할 수 있어요!</div>
+            {pending > 1 && <div className="text-center text-[11px] text-white/50 mb-2">남은 문제 {pending}개 · 차례로 풀어요</div>}
             <QuickAnswer key={quiz.id} problem={quiz} onResult={onQuizResult} />
           </div>
         </div>
