@@ -67,11 +67,17 @@ export function BossGame({
   const [counter, setCounter] = useState(COUNTER_PERIOD)
   const juice = useGameJuice()
 
+  // 보스 등장 — 비웃는 효과음으로 긴장감
+  useEffect(() => {
+    sfx.bossLaugh()
+  }, [])
+
   // 반격 타이머 — 0이 되면 보스가 반격(하트 -1). 답하면 매번 리셋.
   useEffect(() => {
     if (status !== 'play') return
     if (counter <= 0) {
       setReact('attack')
+      sfx.bossLaugh()
       setTimeout(() => setReact('idle'), 400)
       setFeedback('🗯️ 빌런의 반격! 더 빨리 답해요!')
       setCombo(0)
@@ -92,23 +98,26 @@ export function BossGame({
     if (status !== 'play') return
     setCounter(COUNTER_PERIOD) // 답하면 반격 타이머 리셋
     onAnswer?.(problem.id, correct)
-    sfx[correct ? 'correct' : 'wrong']()
     if (correct) {
       const newCombo = combo + 1
       setCombo(newCombo)
       setBestCombo((b) => Math.max(b, newCombo))
       setScore((s) => s + 100 + newCombo * 20)
       juice.correct(newCombo, { x: 0.5, amount: damage })
+      // 콤보 4 이상이면 강타(크리티컬) 효과음, 아니면 일반 명중음
+      if (newCombo >= 4) sfx.crit()
+      else sfx.hit()
       setReact('hit')
-      setFeedback('💥 명중! 빌런에게 데미지!')
+      setFeedback(newCombo >= 4 ? '⚡ 강타! 빌런에게 큰 데미지!' : '💥 명중! 빌런에게 데미지!')
       setTimeout(() => setReact('idle'), 400)
       setBossHp((hp) => {
         const next = Math.max(0, hp - damage)
-        if (next <= 0) { setStatus('clear'); sfx.clear() }
+        if (next <= 0) { setStatus('clear'); sfx.bossDie() }
         return next
       })
       if (bossHp - damage > 0) setTimeout(advance, 500)
     } else {
+      sfx.wrong()
       setCombo(0)
       setReact('attack')
       const correctText = problem.kind === 'mcq'

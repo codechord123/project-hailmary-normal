@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
 import { useProgress } from '@/content/progress'
 import { awardAnswer, awardClear } from '@/content/rewards'
+import { unlockAudio } from '@/lib/sfx'
+import { playBgm, stop as stopBgm, bgmForMechanic } from '@/lib/bgm'
 import { ContentStoryOverlay } from '@/content/components/ContentStoryOverlay'
 import { DefenseGame } from '@/content/minigames/DefenseGame'
 import { RunnerGame } from '@/content/minigames/RunnerGame'
@@ -26,6 +28,15 @@ export function ChapterPlay() {
   const recordAnswer = useProgress((s) => s.recordAnswer)
   const recordClear = useProgress((s) => s.recordClear)
   const [startedId, setStartedId] = useState<string | null>(null)
+
+  // 챕터 메커니즘에 맞는 BGM 재생 — 외부 에셋 없이 합성 트랙 재사용. 떠날 때 정지.
+  const mechanic = chapter?.mechanic
+  useEffect(() => {
+    if (!mechanic) return
+    unlockAudio()
+    playBgm(bgmForMechanic(mechanic))
+    return () => stopBgm()
+  }, [mechanic])
 
   if (!unit || !chapter) return <Navigate to="/subjects" replace />
 

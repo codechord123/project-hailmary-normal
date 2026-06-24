@@ -121,6 +121,27 @@ const TRACKS: Record<string, Track> = {
   },
 }
 
+/**
+ * 콘텐츠(사회 등) 미니게임 메커니즘 → BGM 트랙 매핑.
+ * 외부 에셋 없이 기존 합성 트랙을 분위기에 맞춰 재사용한다.
+ * (runner=경쾌, boss=긴장, matching/detective=신비, finalboss=장엄 …)
+ */
+const MECHANIC_TRACK: Record<string, string> = {
+  runner: 'chapter2',     // 질주 — 빠른 박자
+  oxrush: 'chapter2',     // OX 번개 — 빠른 박자
+  defense: 'chapter4',    // 디펜스 — 행진
+  sorting: 'chapter5',    // 분류 — 인더스트리얼 펄스
+  breakout: 'chapter5',   // 벽돌깨기 — 펄스
+  matching: 'chapter6',   // 매칭 — 신비
+  memory: 'chapter6',     // 메모리 — 신비
+  detective: 'chapter6',  // 추리 — 신비
+  boss: 'chapter3',       // 보스 — 긴장
+  finalboss: 'chapter7',  // 최종 보스 — 장엄
+}
+
+export const bgmForMechanic = (mechanic: string): string =>
+  MECHANIC_TRACK[mechanic] ?? 'chapter1'
+
 let ctx: AudioContext | null = null
 let masterGain: GainNode | null = null
 let muted = false
