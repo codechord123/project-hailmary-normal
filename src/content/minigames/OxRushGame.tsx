@@ -4,6 +4,7 @@ import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 import { GameResult } from '@/content/components/GameResult'
+import { ScreenShake } from '@/components/arcade/ScreenShake'
 import { useLives, GameItemBar, HeartBar } from '@/content/components/GameItems'
 import { starsFromHearts } from '@/content/score'
 import { BALANCE } from '@/content/balance'
@@ -51,6 +52,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
   const [flash, setFlash] = useState<'ok' | 'no' | null>(null)
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
   const [qTime, setQTime] = useState(Q_BASE)
+  const [shakeN, setShakeN] = useState(0)
   const juice = useGameJuice()
 
   // 문항이 바뀌면 제한시간 재설정 (진행할수록 단축)
@@ -104,6 +106,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
       if (cc >= goal) { setStatus('clear'); sfx.clear() }
     } else {
       setCombo(0)
+      setShakeN((n) => n + 1) // 오답 — 화면 흔들림
       if (lives.lose()) setStatus('over')
     }
     setIdx((i) => i + 1)
@@ -111,7 +114,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
 
   const restart = () => {
     setIdx(0); lives.reset(); setCorrectCount(0); setCombo(0)
-    setBestCombo(0); setScore(0); setFlash(null); setStatus('play')
+    setBestCombo(0); setScore(0); setFlash(null); setShakeN(0); setStatus('play')
   }
 
   if (status === 'clear') {
@@ -133,8 +136,9 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
   }
 
   return (
-    <div className={`min-h-screen px-4 py-6 max-w-xl mx-auto flex flex-col gap-5 transition-colors relative ${
-      flash === 'ok' ? 'bg-emerald-500/5' : flash === 'no' ? 'bg-red-500/5' : ''
+    <ScreenShake shake={shakeN} intensity={10}>
+    <div className={`min-h-screen px-4 py-6 max-w-xl mx-auto flex flex-col gap-5 transition-colors duration-150 relative ${
+      flash === 'ok' ? 'bg-emerald-500/10' : flash === 'no' ? 'bg-red-500/15' : ''
     }`}>
       <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} confetti={juice.confetti} />
       <header className="flex items-center justify-between">
@@ -147,6 +151,16 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
 
       <div className="text-center text-sm font-bold text-indigo-200">⚡ {title}</div>
       <div className="text-center text-xs text-white/55">정답 {correctCount} / {goal} · 점수 {score}</div>
+      {combo >= 3 && (
+        <motion.div
+          key={combo}
+          initial={{ scale: 0.7, opacity: 0 }}
+          animate={{ scale: [1.2, 1], opacity: 1 }}
+          className="text-center text-base font-black text-orange-300 drop-shadow-[0_0_8px_rgba(251,146,60,0.6)]"
+        >
+          🔥 {combo} 연속! {combo >= 6 ? '불타올라요!' : ''}
+        </motion.div>
+      )}
       <div className="mt-1">
         <GameItemBar items={[
           { id: 'shield', icon: '🛡️', label: '오답 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
@@ -180,5 +194,6 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
         <p className="text-center text-xs text-white/45 leading-relaxed">{intro}</p>
       )}
     </div>
+    </ScreenShake>
   )
 }
