@@ -30,6 +30,7 @@ export function ContentProblemCard({ problem, onResult }: Props) {
   const initial: ContentAnswer = useMemo(() => {
     if (problem.kind === 'mcq') return { kind: 'mcq', values: [] }
     if (problem.kind === 'ox') return { kind: 'ox', value: null }
+    if (problem.kind === 'order') return { kind: 'order', order: [] }
     return { kind: 'matching', map: {} }
   }, [problem])
 
@@ -54,7 +55,9 @@ export function ContentProblemCard({ problem, onResult }: Props) {
   }
 
   const kindLabel =
-    problem.kind === 'ox' ? 'OX' : problem.kind === 'matching' ? '짝짓기'
+    problem.kind === 'ox' ? 'OX'
+    : problem.kind === 'matching' ? '짝짓기'
+    : problem.kind === 'order' ? '순서 맞추기'
     : problem.multiple ? '객관식 · 여러 개' : '객관식'
 
   return (
@@ -203,8 +206,22 @@ export function ContentProblemCard({ problem, onResult }: Props) {
         </div>
       )}
 
-      {/* ── 확인 버튼 / 결과 ── */}
-      {!submitted ? (
+      {/* ── 순서 맞추기 (미리보기에서는 올바른 순서를 학습 카드로 표시) ── */}
+      {problem.kind === 'order' && (
+        <ol className="flex flex-col gap-2">
+          {problem.steps.map((step, i) => (
+            <li key={i} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/15 bg-white/5 text-white/90">
+              <span className="w-6 h-6 shrink-0 grid place-items-center rounded-full bg-indigo-500/30 text-indigo-100 text-xs font-bold">{i + 1}</span>
+              <span className="text-sm">{step}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {/* ── 확인 버튼 / 결과 (순서 맞추기는 타임라인 미니게임에서 풀어요) ── */}
+      {problem.kind === 'order' ? (
+        <p className="mt-1 text-center text-xs text-white/45">⏱ 이 문제는 타임라인 미니게임에서 순서를 직접 맞춰요.</p>
+      ) : !submitted ? (
         <button
           onClick={submit}
           disabled={!isAnswered(problem, answer)}

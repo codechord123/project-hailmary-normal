@@ -6,6 +6,8 @@ export type ContentAnswer =
   | { kind: 'ox'; value: boolean | null }
   /** matching: leftIndex → 학생이 고른 rightIndex */
   | { kind: 'matching'; map: Record<number, number> }
+  /** order: 학생이 배열한 step 인덱스 순서 */
+  | { kind: 'order'; order: number[] }
 
 const sameSet = (a: number[], b: number[]): boolean => {
   if (a.length !== b.length) return false
@@ -25,6 +27,8 @@ export function isAnswered(problem: ContentProblem, ans: ContentAnswer): boolean
         problem.kind === 'matching' &&
         problem.pairs.every((_, i) => ans.map[i] !== undefined)
       )
+    case 'order':
+      return problem.kind === 'order' && ans.order.length === problem.steps.length
   }
 }
 
@@ -39,6 +43,10 @@ export function judgeContent(problem: ContentProblem, ans: ContentAnswer): boole
   if (problem.kind === 'matching' && ans.kind === 'matching') {
     // left[i] 의 정답은 right[i] (같은 인덱스끼리 짝)
     return problem.pairs.every((_, i) => ans.map[i] === i)
+  }
+  if (problem.kind === 'order' && ans.kind === 'order') {
+    // steps가 정답 순서로 저장돼 있으므로, 배열한 순서가 0,1,2…면 정답
+    return ans.order.length === problem.steps.length && ans.order.every((v, i) => v === i)
   }
   return false
 }

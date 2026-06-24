@@ -15,6 +15,7 @@ import { DetectiveGame } from '@/content/minigames/DetectiveGame'
 import { BreakoutGame } from '@/content/minigames/BreakoutGame'
 import { SortingGame } from '@/content/minigames/SortingGame'
 import { OxRushGame } from '@/content/minigames/OxRushGame'
+import { SequenceGame } from '@/content/minigames/SequenceGame'
 
 /**
  * 챕터 플레이 — 챕터의 미니게임 메커니즘에 맞는 화면을 띄운다.
@@ -162,6 +163,19 @@ export function ChapterPlay() {
         intro={chapter.intro}
         bossName="편견 빌런"
         bossEmoji="👾"
+        onAnswer={onAnswer}
+        onClear={onClear}
+        onExit={backToUnit}
+      />
+    )
+  }
+
+  if (chapter.mechanic === 'timeline') {
+    return (
+      <SequenceGame
+        problems={chapter.problems}
+        title={chapter.title}
+        intro={chapter.intro}
         onAnswer={onAnswer}
         onClear={onClear}
         onExit={backToUnit}

@@ -11,6 +11,7 @@ describe('법과 인권 — 정답 판정·미니게임 데이터 적합성', ()
       let ans: ContentAnswer
       if (p.kind === 'mcq') ans = { kind: 'mcq', values: [...p.correctIndexes] }
       else if (p.kind === 'ox') ans = { kind: 'ox', value: p.answer }
+      else if (p.kind === 'order') ans = { kind: 'order', order: p.steps.map((_, i) => i) }
       else {
         const map: Record<number, number> = {}
         p.pairs.forEach((_, i) => (map[i] = i))
@@ -32,6 +33,20 @@ describe('법과 인권 — 정답 판정·미니게임 데이터 적합성', ()
     const oxChapter = lawAndRightsUnit.chapters.find((c) => c.mechanic === 'oxrush')
     const oxCount = oxChapter?.problems.filter((p) => p.kind === 'ox').length ?? 0
     expect(oxCount).toBeGreaterThanOrEqual(5)
+  })
+
+  it('타임라인 챕터에는 order 문제가 있고, 순서가 틀리면 오답 처리된다', () => {
+    const tl = lawAndRightsUnit.chapters.find((c) => c.mechanic === 'timeline')
+    const orders = tl?.problems.filter((p) => p.kind === 'order') ?? []
+    expect(orders.length).toBeGreaterThanOrEqual(3)
+    for (const p of orders) {
+      if (p.kind !== 'order') continue
+      expect(p.steps.length).toBeGreaterThanOrEqual(3)
+      // 두 단계를 뒤바꾼 순서는 오답이어야 한다
+      const wrong = p.steps.map((_, i) => i)
+      ;[wrong[0], wrong[1]] = [wrong[1], wrong[0]]
+      expect(judgeContent(p, { kind: 'order', order: wrong }), `${p.id} 오답 판정 실패`).toBe(false)
+    }
   })
 
   it('등록부에서 단원을 id로 찾을 수 있다', () => {

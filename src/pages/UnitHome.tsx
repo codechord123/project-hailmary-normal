@@ -18,6 +18,7 @@ const MECHANIC: Record<string, { label: string; icon: string }> = {
   boss: { label: '보스전', icon: '👾' },
   finalboss: { label: '최종보스', icon: '🐉' },
   breakout: { label: '벽돌깨기', icon: '🧱' },
+  timeline: { label: '순서 맞추기', icon: '⏱' },
 }
 
 /**

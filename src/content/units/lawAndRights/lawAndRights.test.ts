@@ -34,9 +34,9 @@ describe('법의 역할과 인권 — 콘텐츠 데이터 무결성', () => {
     }
   })
 
-  it('여섯 챕터가 의도한 미니게임 순서로 매핑돼 있다', () => {
+  it('일곱 챕터가 의도한 미니게임 순서로 매핑돼 있다', () => {
     const mechanics = lawAndRightsUnit.chapters.map((c) => c.mechanic)
-    expect(mechanics).toEqual(['runner', 'sorting', 'memory', 'oxrush', 'detective', 'breakout'])
+    expect(mechanics).toEqual(['runner', 'sorting', 'memory', 'oxrush', 'detective', 'breakout', 'timeline'])
   })
 
   it('단원 전체 문항이 100개 이상이다', () => {

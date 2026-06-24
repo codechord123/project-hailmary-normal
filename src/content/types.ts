@@ -9,7 +9,7 @@
 export type Difficulty = 1 | 2 | 3
 
 /** 챕터에 입히는 미니게임 메커니즘 */
-export type MechanicId = 'runner' | 'defense' | 'sorting' | 'matching' | 'memory' | 'oxrush' | 'detective' | 'boss' | 'finalboss' | 'breakout'
+export type MechanicId = 'runner' | 'defense' | 'sorting' | 'matching' | 'memory' | 'oxrush' | 'detective' | 'boss' | 'finalboss' | 'breakout' | 'timeline'
 
 interface BaseProblem {
   id: string
@@ -53,7 +53,18 @@ export interface MatchingProblem extends BaseProblem {
   pairs: MatchingPair[]
 }
 
-export type ContentProblem = MCQProblem | OXProblem | MatchingProblem
+/**
+ * 순서 맞추기 — 타임라인 미니게임용.
+ * steps는 "올바른 순서대로" 저장한다(게임에서 섞어 출제, 원래 순서가 정답).
+ * 예) 재판 과정, 법 제정 과정, 인권 구제 절차.
+ */
+export interface OrderProblem extends BaseProblem {
+  kind: 'order'
+  prompt: string
+  steps: string[]
+}
+
+export type ContentProblem = MCQProblem | OXProblem | MatchingProblem | OrderProblem
 
 export interface ChapterDef {
   id: string
