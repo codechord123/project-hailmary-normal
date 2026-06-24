@@ -6,6 +6,7 @@ import { useActiveUnit } from '@/content/activeUnit'
 import { useUnitProgress } from '@/content/progress'
 import { useGameStore } from '@/store/gameStore'
 import { computeLevelInfo } from '@/lib/leveling'
+import { codexCollected, codexTotal } from '@/content/units/lawAndRights/codex'
 
 const MECHANIC: Record<string, { label: string; icon: string }> = {
   runner: { label: '퀴즈 러너', icon: '🏃' },
@@ -179,7 +180,7 @@ export function UnitHome() {
         {/* 학습 도구 — 오답 노트는 단원별, 나머지는 공유 */}
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-bold text-white/70">📚 학습 도구 · 단원</h2>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <Link
               to={`/unit/${unit.id}/wrong`}
               className="rounded-xl bg-rose-400/10 border border-rose-300/30 text-rose-100 text-center p-2 text-xs hover:bg-rose-400/20 transition"
@@ -190,8 +191,15 @@ export function UnitHome() {
               )}
             </Link>
             <Link
-              to={`/unit/${unit.id}/achievements`}
+              to={`/unit/${unit.id}/codex`}
               className="rounded-xl bg-amber-400/10 border border-amber-300/30 text-amber-100 text-center p-2 text-xs hover:bg-amber-400/20 transition"
+            >
+              <div className="text-lg">📖</div>권리 도감
+              <div className="text-[10px] text-amber-200/80">{codexCollected(prog.cleared)}/{codexTotal()}</div>
+            </Link>
+            <Link
+              to={`/unit/${unit.id}/achievements`}
+              className="rounded-xl bg-indigo-400/10 border border-indigo-300/30 text-indigo-100 text-center p-2 text-xs hover:bg-indigo-400/20 transition"
             >
               <div className="text-lg">📊</div>단원 기록
             </Link>
