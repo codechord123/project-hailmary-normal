@@ -4,6 +4,7 @@ import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 import { GameResult } from '@/content/components/GameResult'
+import { ScreenShake } from '@/components/arcade/ScreenShake'
 import { useLives, GameItemBar, HeartBar } from '@/content/components/GameItems'
 import { starsFromHearts } from '@/content/score'
 import { BALANCE } from '@/content/balance'
@@ -64,6 +65,7 @@ export function SequenceGame({ problems, title, intro, onClear, onExit, onAnswer
   const [bestCombo, setBestCombo] = useState(0)
   const [score, setScore] = useState(0)
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
+  const [shakeN, setShakeN] = useState(0)
   const juice = useGameJuice()
 
   if (pool.length === 0 || !problem) {
@@ -116,6 +118,7 @@ export function SequenceGame({ problems, title, intro, onClear, onExit, onAnswer
       sfx.wrong()
       setCombo(0)
       setReveal(true)
+      setShakeN((n) => n + 1)
       const dead = lives.lose()
       if (dead) setStatus('over')
       setTimeout(() => { if (!dead) loadNext() }, 1600)
@@ -133,7 +136,7 @@ export function SequenceGame({ problems, title, intro, onClear, onExit, onAnswer
     setProblem(np)
     setShuffled(shuffle(np.steps.map((_, i) => i)))
     setPlaced([]); setReveal(false); lives.reset()
-    setSolved(0); setCombo(0); setBestCombo(0); setScore(0); setStatus('play')
+    setSolved(0); setCombo(0); setBestCombo(0); setScore(0); setShakeN(0); setStatus('play')
   }
 
   if (status === 'clear') {
@@ -154,6 +157,7 @@ export function SequenceGame({ problems, title, intro, onClear, onExit, onAnswer
   }
 
   return (
+    <ScreenShake shake={shakeN} intensity={10}>
     <div className="min-h-screen px-4 sm:px-6 py-4 max-w-2xl mx-auto flex flex-col relative">
       <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} confetti={juice.confetti} />
       <header className="flex items-center justify-between">
@@ -242,5 +246,6 @@ export function SequenceGame({ problems, title, intro, onClear, onExit, onAnswer
         <p className="mt-3 text-center text-xs text-white/45 leading-relaxed">{intro}</p>
       )}
     </div>
+    </ScreenShake>
   )
 }

@@ -4,6 +4,7 @@ import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 import { GameResult } from '@/content/components/GameResult'
+import { ScreenShake } from '@/components/arcade/ScreenShake'
 import { useLives, GameItemBar, HeartBar } from '@/content/components/GameItems'
 import { starsFromHearts } from '@/content/score'
 import { BALANCE } from '@/content/balance'
@@ -62,6 +63,7 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
   const [score, setScore] = useState(0)
   const [hintsLeft, setHintsLeft] = useState(HINTS)
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
+  const [shakeN, setShakeN] = useState(0)
   const juice = useGameJuice()
 
   if (pool.length === 0 || !problem) {
@@ -116,6 +118,7 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
     } else {
       sfx.wrong()
       setCombo(0)
+      setShakeN((n) => n + 1)
       const dead = lives.lose()
       if (dead) setStatus('over')
       setTimeout(() => { if (!dead) advance() }, 1100)
@@ -126,7 +129,7 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
     queueRef.current = shuffle(pool)
     setProblem(queueRef.current.shift()!)
     setEliminated([]); setPicked(null); lives.reset(); setSolved(0)
-    setCombo(0); setBestCombo(0); setScore(0); setHintsLeft(HINTS); setStatus('play')
+    setCombo(0); setBestCombo(0); setScore(0); setHintsLeft(HINTS); setShakeN(0); setStatus('play')
   }
 
   if (status === 'clear') {
@@ -147,6 +150,7 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
   }
 
   return (
+    <ScreenShake shake={shakeN} intensity={10}>
     <div className="min-h-screen px-4 sm:px-6 py-4 max-w-2xl mx-auto flex flex-col relative">
       <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} confetti={juice.confetti} />
       <header className="flex items-center justify-between">
@@ -217,5 +221,6 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
         <p className="mt-3 text-center text-xs text-white/45 leading-relaxed">{intro}</p>
       )}
     </div>
+    </ScreenShake>
   )
 }

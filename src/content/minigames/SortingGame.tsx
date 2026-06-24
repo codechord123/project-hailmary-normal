@@ -4,6 +4,7 @@ import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 import { GameResult } from '@/content/components/GameResult'
+import { ScreenShake } from '@/components/arcade/ScreenShake'
 import { useLives, GameItemBar, HeartBar } from '@/content/components/GameItems'
 import { starsFromMistakes } from '@/content/score'
 import { BALANCE } from '@/content/balance'
@@ -73,6 +74,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   const [timeLeft, setTimeLeft] = useState(budget)
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
   const [revealCat, setRevealCat] = useState<string | null>(null)
+  const [shakeN, setShakeN] = useState(0)
   const juice = useGameJuice()
 
   useEffect(() => {
@@ -98,7 +100,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   const stars = starsFromMistakes(mistakes)
 
   const restart = () => {
-    setRoundIdx(0); setAssigned({}); setWrong(null); setSelected(null); lives.reset()
+    setRoundIdx(0); setAssigned({}); setWrong(null); setSelected(null); setShakeN(0); lives.reset()
     setMistakes(0); setCombo(0); setTimeLeft(budget); setStatus('play')
   }
 
@@ -145,6 +147,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
       setWrong(itemIdx)
       setRevealCat(`'${item.text}' → '${item.category}'`)
       onAward?.(false)
+      setShakeN((n) => n + 1)
       if (lives.lose()) setStatus('over')
       setTimeout(() => setWrong(null), 350)
       setTimeout(() => setRevealCat(null), 1400)
@@ -169,6 +172,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   const lowTime = timeLeft <= 10
 
   return (
+    <ScreenShake shake={shakeN} intensity={9}>
     <div className="min-h-screen px-4 sm:px-6 py-4 max-w-2xl mx-auto flex flex-col relative">
       <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} confetti={juice.confetti} />
       <header className="flex items-center justify-between">
@@ -272,5 +276,6 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
         끌어다 놓거나, 사례를 누른 뒤 알맞은 역할 바구니를 누르세요.
       </p>
     </div>
+    </ScreenShake>
   )
 }
