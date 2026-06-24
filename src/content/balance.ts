@@ -21,6 +21,9 @@ export const BALANCE = {
     qMinSec: 3, // 문항 최소 제한시간
     qRampPerCorrect: 0.4, // 정답당 단축 폭
   },
+  runner: {
+    gateMs: 4500, // 관문 도달 시간(작을수록 빠름)
+  },
   timed: {
     minBudgetSec: 30, // 시간제 게임 최소 제한시간
     matchingSecPerPair: 7, // 매칭: 짝당 초

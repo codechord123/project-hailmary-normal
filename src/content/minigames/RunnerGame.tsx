@@ -27,7 +27,7 @@ interface Gate {
 }
 
 const LANES = 3
-const GATE_MS = 6000 // 관문 도달까지 시간(읽고 조향)
+const GATE_MS = BALANCE.runner.gateMs // 관문 도달까지 시간(읽고 조향)
 const START_HEARTS = BALANCE.hearts
 const GOAL = 8 // 통과할 관문 수
 
@@ -66,7 +66,6 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
 
   const [gate, setGate] = useState<Gate | null>(null)
   const [playerLane, setPlayerLane] = useState(1)
-  const [now, setNow] = useState(Date.now())
   const [hearts, setHearts] = useState(START_HEARTS)
   const [killed, setKilled] = useState(0)
   const [combo, setCombo] = useState(0)
@@ -126,13 +125,6 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
     return () => { if (timerRef.current) clearTimeout(timerRef.current) }
   }, [gate, status, makeGate, resolveGate])
 
-  // 진행 바 tick
-  useEffect(() => {
-    if (status !== 'play') return
-    const id = setInterval(() => setNow(Date.now()), 100)
-    return () => clearInterval(id)
-  }, [status])
-
   if (pool.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-white/70">
@@ -167,7 +159,6 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
     )
   }
 
-  const progress = gate ? Math.min(1, (now - gate.spawnTime) / GATE_MS) : 0
   const goal = Math.min(GOAL, Math.max(3, pool.length))
 
   return (
@@ -195,25 +186,30 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
 
       {/* 트랙 (3레인) */}
       <div className="mt-3 relative rounded-2xl border-2 border-white/15 bg-black/30 overflow-hidden" style={{ height: '50vh', minHeight: 320 }}>
-        {/* 다가오는 관문 */}
+        {/* 다가오는 관문 — 플레이어까지 한 번에 내려옴 */}
         <AnimatePresence>
           {gate && (
-            <div key={gate.uid} className="absolute inset-0 grid grid-cols-3">
+            <motion.div
+              key={gate.uid}
+              className="absolute inset-x-0 grid grid-cols-3"
+              initial={{ top: '-16%' }}
+              animate={{ top: '82%' }}
+              transition={{ duration: GATE_MS / 1000, ease: 'linear' }}
+            >
               {gate.laneChoiceIdxs.map((choiceIdx, lane) => (
-                <div key={lane} className="relative border-r last:border-r-0 border-white/10 flex justify-center">
-                  <motion.div
-                    initial={{ top: '-18%' }}
-                    animate={{ top: `${progress * 70}%` }}
-                    transition={{ duration: 0.1, ease: 'linear' }}
-                    className="absolute w-[92%] px-2 py-2 rounded-lg bg-gradient-to-br from-indigo-500/40 to-violet-700/40 border border-indigo-300/40 text-white text-xs sm:text-sm text-center font-bold"
-                  >
+                <div key={lane} className="px-1 flex justify-center">
+                  <div className="w-[94%] px-2 py-2 rounded-lg bg-gradient-to-br from-indigo-500/50 to-violet-700/50 border border-indigo-300/50 text-white text-xs sm:text-sm text-center font-bold">
                     {gate.problem.choices[choiceIdx]}
-                  </motion.div>
+                  </div>
                 </div>
               ))}
-            </div>
+            </motion.div>
           )}
         </AnimatePresence>
+        {/* 레인 구분선 */}
+        <div className="absolute inset-0 grid grid-cols-3 pointer-events-none">
+          <div className="border-r border-white/10" /><div className="border-r border-white/10" /><div />
+        </div>
 
         {/* 플레이어 */}
         <motion.div
