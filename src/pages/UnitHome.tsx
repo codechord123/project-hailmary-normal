@@ -105,39 +105,29 @@ export function UnitHome() {
             const m = MECHANIC[ch.mechanic] ?? { label: ch.mechanic, icon: '🎮' }
             const stars = prog.stars[ch.id] ?? 0
             const cleared = prog.cleared.includes(ch.id)
-            // 잠금: 첫 챕터는 항상 열림, 그 외엔 직전 챕터에서 별 1개 이상 받아야 해금
+            // 잠금은 '추천 순서' 힌트일 뿐, 어떤 챕터든 바로 플레이할 수 있게 한다
             const prevStars = i === 0 ? 1 : prog.stars[unit.chapters[i - 1].id] ?? 0
-            const locked = i > 0 && prevStars < 1
+            const suggested = i > 0 && prevStars < 1 // 아직 추천 순서엔 도달 안 함
 
-            if (locked) {
-              return (
-                <div
-                  key={ch.id}
-                  className="rounded-2xl bg-white/[0.03] border border-white/10 p-4 flex items-center gap-4 opacity-60 cursor-not-allowed"
-                  aria-disabled="true"
-                >
-                  <span className="text-3xl grayscale">🔒</span>
-                  <span className="flex flex-col flex-1">
-                    <span className="text-xs text-white/40">챕터 {i + 1} · {m.label}</span>
-                    <span className="text-lg font-bold text-white/50">{ch.title}</span>
-                    <span className="text-xs text-white/35">앞 챕터를 ★ 1개 이상으로 깨면 열려요</span>
-                  </span>
-                </div>
-              )
-            }
             return (
               <Link
                 key={ch.id}
                 to={`/play/${unit.id}/${ch.id}`}
-                className="rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition p-4 flex items-center gap-4"
+                className={`rounded-2xl border p-4 flex items-center gap-4 transition ${
+                  suggested
+                    ? 'bg-white/[0.03] border-white/10 hover:bg-white/[0.07]'
+                    : 'bg-white/5 border-white/10 hover:bg-white/10'
+                }`}
               >
-                <span className="text-3xl">{m.icon}</span>
+                <span className={`text-3xl ${suggested ? 'opacity-70' : ''}`}>{m.icon}</span>
                 <span className="flex flex-col flex-1">
                   <span className="text-xs text-white/50">
                     챕터 {i + 1} · {m.label} {cleared && <span className="text-green-300">· 클리어</span>}
                   </span>
-                  <span className="text-lg font-bold text-white">{ch.title}</span>
-                  <span className="text-xs text-white/45">문제 {ch.problems.length}개</span>
+                  <span className={`text-lg font-bold ${suggested ? 'text-white/80' : 'text-white'}`}>{ch.title}</span>
+                  <span className="text-xs text-white/45">
+                    문제 {ch.problems.length}개{suggested && <span className="text-white/30"> · 앞 챕터부터 추천</span>}
+                  </span>
                 </span>
                 <span className="text-sm text-amber-300">
                   {'★'.repeat(stars)}<span className="text-white/20">{'★'.repeat(3 - stars)}</span>
