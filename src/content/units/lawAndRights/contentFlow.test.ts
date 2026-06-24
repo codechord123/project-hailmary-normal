@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { lawAndRightsUnit } from './index'
 import { judgeContent, type ContentAnswer } from '@/content/judge'
 import { findUnit } from '@/content/registry'
+import { explainFor } from './explanations'
 
 const all = lawAndRightsUnit.chapters.flatMap((c) => c.problems)
 
@@ -47,6 +48,12 @@ describe('법과 인권 — 정답 판정·미니게임 데이터 적합성', ()
       ;[wrong[0], wrong[1]] = [wrong[1], wrong[0]]
       expect(judgeContent(p, { kind: 'order', order: wrong }), `${p.id} 오답 판정 실패`).toBe(false)
     }
+  })
+
+  it('대부분의 문항에 해설(explain) 또는 힌트가 연결돼 있다', () => {
+    const withExplain = all.filter((p) => explainFor(p) !== undefined || p.hint).length
+    // 문항의 90% 이상이 풀이 후 학습 피드백을 갖는다
+    expect(withExplain / all.length).toBeGreaterThanOrEqual(0.9)
   })
 
   it('등록부에서 단원을 id로 찾을 수 있다', () => {
