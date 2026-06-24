@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { judgeContent } from '@/content/judge'
 import { sfx } from '@/lib/sfx'
@@ -66,6 +66,7 @@ export function BossGame({
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
   const [counter, setCounter] = useState(COUNTER_PERIOD)
   const juice = useGameJuice()
+  const reduceMotion = useReducedMotion()
 
   // 보스 등장 — 비웃는 효과음으로 긴장감
   useEffect(() => {
@@ -189,11 +190,12 @@ export function BossGame({
         <motion.div
           className="text-7xl"
           animate={
-            react === 'hit' ? { scale: [1, 0.8, 1], rotate: [0, -8, 8, 0] }
+            reduceMotion ? {}
+            : react === 'hit' ? { scale: [1, 0.8, 1], rotate: [0, -8, 8, 0] }
             : react === 'attack' ? { x: [0, 12, -12, 0] }
             : { y: [0, -6, 0] }
           }
-          transition={react === 'idle' ? { duration: 2, repeat: Infinity } : { duration: 0.4 }}
+          transition={reduceMotion ? { duration: 0 } : react === 'idle' ? { duration: 2, repeat: Infinity } : { duration: 0.4 }}
         >
           {react === 'hit' ? '😵' : bossEmoji}
         </motion.div>
