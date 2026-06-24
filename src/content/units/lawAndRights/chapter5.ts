@@ -16,6 +16,67 @@ export const chapter5: ChapterDef = {
     '그들의 이야기로 빌런의 편견을 무너뜨리자!',
   ],
   problems: [
+    // ── 인권 침해를 당했을 때 '어디에·어떻게' 도움을 청할지 판단하는 적용형 사건 ──
+    {
+      id: 'c5-rescue1', kind: 'mcq', difficulty: 2, source: '적용',
+      scenario: '친구가 매일 나를 때리고 괴롭혀서 학교 가기가 무서워요.',
+      prompt: '이런 학교 폭력을 당했을 때 가장 바람직한 행동은?',
+      choices: [
+        '선생님이나 부모님께 알리고 도움을 요청한다',
+        '무서워서 그냥 참는다',
+        '똑같이 때려서 갚아 준다',
+        '아무에게도 말하지 않고 혼자 견딘다',
+      ],
+      correctIndexes: [0], multiple: false,
+      hint: '혼자 참지 말고 믿을 수 있는 어른께 알려야 해요.',
+    },
+    {
+      id: 'c5-rescue2', kind: 'mcq', difficulty: 2, source: '적용',
+      scenario: '누군가 내 사진과 이름을 인터넷에 함부로 올렸어요.',
+      prompt: '개인 정보가 침해됐을 때 알맞은 행동은?',
+      choices: [
+        '부모님·선생님께 알리고 사이트에 삭제를 요청한다',
+        '나도 그 사람 정보를 인터넷에 올린다',
+        '창피하니까 그냥 둔다',
+        '댓글로 똑같이 욕을 한다',
+      ],
+      correctIndexes: [0], multiple: false,
+      hint: '내 정보를 함부로 올리는 것은 인권 침해예요. 어른께 알리고 삭제를 요청해요.',
+    },
+    {
+      id: 'c5-rescue3', kind: 'mcq', difficulty: 3, source: '적용',
+      scenario: '피부색이 다르다는 이유로 가게에서 손님을 받지 않았어요.',
+      prompt: '이런 차별(인권 침해)을 조사하고 바로잡아 주는 국가 기관은?',
+      choices: ['국가인권위원회', '소방서', '우체국', '기상청'],
+      correctIndexes: [0], multiple: false,
+      hint: '사람들의 인권을 지키려고 만든 국가 기관이에요.',
+    },
+    {
+      id: 'c5-rescue4', kind: 'mcq', difficulty: 2, source: '적용',
+      scenario: '내가 인권을 침해당해 억울한 일을 겪었어요.',
+      prompt: '인권을 침해당했을 때 바람직한 태도는?',
+      choices: [
+        '참지 말고 도움을 요청해 권리를 되찾는다',
+        '내 잘못이라고 생각하고 포기한다',
+        '힘으로 직접 해결한다',
+        '아무 일도 없던 것처럼 잊는다',
+      ],
+      correctIndexes: [0], multiple: false,
+      hint: '인권은 소중하니까 침해당하면 도움을 청해 되찾아야 해요.',
+    },
+    {
+      id: 'c5-rescue5', kind: 'mcq', difficulty: 2, source: '적용',
+      scenario: '반 친구가 장애가 있다는 이유로 따돌림을 당하고 있어요.',
+      prompt: '곁에서 이를 본 내가 할 수 있는 바람직한 행동은?',
+      choices: [
+        '따돌림을 멈추도록 돕고 선생님께 알린다',
+        '나와 상관없으니 모른 척한다',
+        '따돌리는 친구들 편에 선다',
+        '같이 놀리며 웃는다',
+      ],
+      correctIndexes: [0], multiple: false,
+      hint: '다른 사람의 인권을 지켜 주는 것도 우리 모두의 몫이에요.',
+    },
     {
       id: 'c3-6', kind: 'mcq', difficulty: 2, source: '교육과정',
       prompt: "어린이를 존중하자며 '어린이날'을 만들고 어린이 인권을 위해 힘쓴 인물은?",
