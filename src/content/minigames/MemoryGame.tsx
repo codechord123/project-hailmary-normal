@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
@@ -74,6 +74,7 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
   const juice = useGameJuice()
+  const reduce = useReducedMotion()
 
   if (rounds.length === 0) {
     return (
@@ -146,7 +147,7 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
 
   return (
     <div className="min-h-screen px-4 sm:px-6 py-4 max-w-2xl mx-auto flex flex-col relative">
-      <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} />
+      <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} confetti={juice.confetti} />
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
         <div className="text-xs text-white/60 flex gap-3 items-center">
@@ -177,28 +178,32 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
           const up = isUp(c)
           const done = matched.has(c.cardId)
           return (
-            <button
-              key={c.cardId}
-              onClick={() => flip(c)}
-              disabled={up || busy}
-              aria-label={up ? c.text : '뒤집힌 카드'}
-              className={`relative h-20 sm:h-24 rounded-lg border-2 p-1 text-[10px] sm:text-xs font-bold flex items-center justify-center text-center leading-tight transition ${
-                done
-                  ? 'border-green-400/60 bg-green-400/10 text-green-100'
-                  : up
-                    ? 'border-yellow-300 bg-yellow-300/10 text-white'
-                    : 'border-white/15 bg-gradient-to-br from-indigo-600/40 to-violet-800/40 text-transparent hover:from-indigo-500/50'
-              }`}
-            >
-              <motion.span
+            <div key={c.cardId} className="relative h-20 sm:h-24 [perspective:700px]">
+              <motion.button
+                onClick={() => flip(c)}
+                disabled={up || busy}
+                aria-label={up ? c.text : '뒤집힌 카드'}
                 initial={false}
-                animate={{ scale: up ? 1 : 0.9 }}
-                className={up ? '' : 'opacity-0'}
+                animate={{ rotateY: up ? 180 : 0, scale: done ? [1, 1.12, 1] : 1 }}
+                transition={{ duration: reduce ? 0 : 0.4, ease: 'easeOut' }}
+                className="absolute inset-0 rounded-xl [transform-style:preserve-3d]"
               >
-                {up ? c.text : '?'}
-              </motion.span>
-              {!up && <span className="absolute text-2xl text-white/70">❓</span>}
-            </button>
+                {/* 뒷면 (덮인 카드) */}
+                <span className="absolute inset-0 grid place-items-center rounded-xl border-2 border-indigo-400/40 bg-gradient-to-br from-indigo-600/50 to-violet-800/60 text-2xl text-white/80 shadow-[inset_0_0_14px_rgba(99,102,241,0.45)] [backface-visibility:hidden]">
+                  ❓
+                </span>
+                {/* 앞면 (내용) */}
+                <span
+                  className={`absolute inset-0 grid place-items-center rounded-xl border-2 p-1 text-center text-[10px] sm:text-xs font-bold leading-tight [backface-visibility:hidden] [transform:rotateY(180deg)] ${
+                    done
+                      ? 'border-green-400 bg-green-400/15 text-green-100 shadow-[0_0_14px_rgba(74,222,128,0.5)]'
+                      : 'border-yellow-300 bg-yellow-300/10 text-white shadow-[0_0_10px_rgba(253,224,71,0.4)]'
+                  }`}
+                >
+                  {c.text}
+                </span>
+              </motion.button>
+            </div>
           )
         })}
       </div>

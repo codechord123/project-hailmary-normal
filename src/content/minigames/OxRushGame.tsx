@@ -136,7 +136,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
     <div className={`min-h-screen px-4 py-6 max-w-xl mx-auto flex flex-col gap-5 transition-colors relative ${
       flash === 'ok' ? 'bg-emerald-500/5' : flash === 'no' ? 'bg-red-500/5' : ''
     }`}>
-      <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} />
+      <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} confetti={juice.confetti} />
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
         <div className="text-sm flex gap-3 items-center">

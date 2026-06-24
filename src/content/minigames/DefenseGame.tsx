@@ -214,7 +214,7 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
       animate={flash === 'miss' ? { x: [0, -8, 8, -4, 0] } : { x: 0 }}
       transition={{ duration: 0.25 }}
     >
-      <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} />
+      <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} confetti={juice.confetti} />
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
         <div className="flex items-center gap-2 text-sm">
