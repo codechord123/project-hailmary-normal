@@ -8,7 +8,7 @@ import type { ChapterDef } from '@/content/types'
 export const chapter3: ChapterDef = {
   id: 'law-rights-3',
   title: '여러 가지 법',
-  mechanic: 'matching',
+  mechanic: 'memory',
   intro: '도시의 법전이 뒤섞여버렸어요! 각 법과 그 법이 하는 일을 알맞게 이어 붙여 법전을 되살려요.',
   story: [
     '우리 생활 속엔 수많은 법이 숨어 있어요.',

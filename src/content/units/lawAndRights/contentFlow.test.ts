@@ -20,9 +20,9 @@ describe('법과 인권 — 정답 판정·미니게임 데이터 적합성', ()
     }
   })
 
-  it('분류·매칭 챕터에는 matching 문제가 있다', () => {
+  it('분류·매칭·메모리 챕터에는 matching 문제가 있다', () => {
     for (const c of lawAndRightsUnit.chapters) {
-      if (c.mechanic === 'sorting' || c.mechanic === 'matching') {
+      if (c.mechanic === 'sorting' || c.mechanic === 'matching' || c.mechanic === 'memory') {
         expect(c.problems.some((p) => p.kind === 'matching'), `${c.title}`).toBe(true)
       }
     }

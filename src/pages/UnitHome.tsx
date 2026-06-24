@@ -11,6 +11,7 @@ const MECHANIC: Record<string, { label: string; icon: string }> = {
   defense: { label: '디펜스', icon: '🛡️' },
   sorting: { label: '분류', icon: '🗂️' },
   matching: { label: '매칭', icon: '🃏' },
+  memory: { label: '메모리 카드', icon: '🃏' },
   oxrush: { label: 'OX 번개', icon: '⚡' },
   boss: { label: '보스전', icon: '👾' },
   finalboss: { label: '최종보스', icon: '🐉' },

@@ -6,6 +6,7 @@ import { awardAnswer, awardClear } from '@/content/rewards'
 import { ContentStoryOverlay } from '@/content/components/ContentStoryOverlay'
 import { DefenseGame } from '@/content/minigames/DefenseGame'
 import { MatchingGame } from '@/content/minigames/MatchingGame'
+import { MemoryGame } from '@/content/minigames/MemoryGame'
 import { BossGame } from '@/content/minigames/BossGame'
 import { SortingGame } from '@/content/minigames/SortingGame'
 import { OxRushGame } from '@/content/minigames/OxRushGame'
@@ -81,6 +82,19 @@ export function ChapterPlay() {
         problems={chapter.problems}
         title={chapter.title}
         intro={chapter.intro}
+        onClear={onClear}
+        onExit={backToUnit}
+      />
+    )
+  }
+
+  if (chapter.mechanic === 'memory') {
+    return (
+      <MemoryGame
+        problems={chapter.problems}
+        title={chapter.title}
+        intro={chapter.intro}
+        onAward={(correct) => awardAnswer(correct)}
         onClear={onClear}
         onExit={backToUnit}
       />
