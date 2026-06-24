@@ -63,8 +63,10 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   }, [round])
 
   const [assigned, setAssigned] = useState<Record<number, string>>({})
-  const bucketRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const bucketRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const [wrong, setWrong] = useState<number | null>(null)
+  // 드래그 대체 입력(키보드·스크린리더): 사례 선택 → 바구니 탭
+  const [selected, setSelected] = useState<number | null>(null)
   const lives = useLives(START_HEARTS)
   const [mistakes, setMistakes] = useState(0)
   const [combo, setCombo] = useState(0)
@@ -96,7 +98,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   const stars = starsFromMistakes(mistakes)
 
   const restart = () => {
-    setRoundIdx(0); setAssigned({}); setWrong(null); lives.reset()
+    setRoundIdx(0); setAssigned({}); setWrong(null); setSelected(null); lives.reset()
     setMistakes(0); setCombo(0); setTimeLeft(budget); setStatus('play')
   }
 
@@ -123,6 +125,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
     if (status !== 'play' || assigned[itemIdx] !== undefined) return
     const item = items.find((it) => it.idx === itemIdx)
     if (!item) return
+    setSelected(null)
     if (item.category === category) {
       const c = combo + 1
       setCombo(c)
@@ -199,24 +202,32 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
       )}
 
       <div className="mt-4">
-        <div className="text-[11px] text-white/40 font-bold mb-1">분류할 사례 (끌어다 바구니에 놓기)</div>
+        <div className="text-[11px] text-white/40 font-bold mb-1">분류할 사례 (끌어다 놓거나, 사례를 누른 뒤 바구니를 누르기)</div>
         <div className="flex flex-wrap gap-2 min-h-[3rem]">
           {pool.length === 0 ? (
             <span className="text-white/40 text-sm">모두 분류했어요!</span>
-          ) : pool.map((it) => (
-            <motion.button
-              key={it.idx}
-              drag
-              dragSnapToOrigin
-              whileDrag={{ scale: 1.12, zIndex: 50 }}
-              onDragEnd={(_, info) => handleDrop(it.idx, info.point)}
-              animate={wrong === it.idx ? { x: [0, -6, 6, 0] } : {}}
-              transition={{ duration: 0.3 }}
-              className="px-3 py-2 rounded-lg text-sm border border-white/15 bg-white/5 text-white/90 cursor-grab active:cursor-grabbing touch-none select-none"
-            >
-              {it.text}
-            </motion.button>
-          ))}
+          ) : pool.map((it) => {
+            const isSel = selected === it.idx
+            return (
+              <motion.button
+                key={it.idx}
+                drag
+                dragSnapToOrigin
+                whileDrag={{ scale: 1.12, zIndex: 50 }}
+                onDragEnd={(_, info) => handleDrop(it.idx, info.point)}
+                onClick={() => setSelected(isSel ? null : it.idx)}
+                aria-pressed={isSel}
+                aria-label={`사례: ${it.text}${isSel ? ' (선택됨 — 바구니를 누르세요)' : ''}`}
+                animate={wrong === it.idx ? { x: [0, -6, 6, 0] } : {}}
+                transition={{ duration: 0.3 }}
+                className={`px-3 py-2 rounded-lg text-sm border text-white/90 cursor-grab active:cursor-grabbing touch-none select-none transition ${
+                  isSel ? 'border-yellow-300 bg-yellow-300/15 ring-2 ring-yellow-300/50' : 'border-white/15 bg-white/5'
+                }`}
+              >
+                {it.text}
+              </motion.button>
+            )
+          })}
         </div>
       </div>
 
@@ -229,11 +240,20 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
       <div className="mt-4 grid grid-cols-2 gap-3">
         {categories.map((cat) => {
           const inside = items.filter((it) => assigned[it.idx] === cat)
+          const armed = selected !== null
           return (
-            <div
+            <button
               key={cat}
+              type="button"
               ref={(el) => { bucketRefs.current[cat] = el }}
-              className="text-left rounded-xl border-2 border-dashed border-indigo-400/40 bg-indigo-400/5 p-3 min-h-[5.5rem]"
+              onClick={() => { if (selected !== null) placeItem(selected, cat) }}
+              disabled={!armed}
+              aria-label={`${cat} 바구니, 현재 ${inside.length}개${armed ? ' — 눌러서 선택한 사례 넣기' : ''}`}
+              className={`text-left rounded-xl border-2 border-dashed p-3 min-h-[5.5rem] transition ${
+                armed
+                  ? 'border-yellow-300/70 bg-yellow-300/10 cursor-pointer hover:bg-yellow-300/20'
+                  : 'border-indigo-400/40 bg-indigo-400/5 cursor-default'
+              }`}
             >
               <div className="text-sm font-bold text-white mb-1">📦 {cat}</div>
               <div className="flex flex-wrap gap-1">
@@ -243,13 +263,13 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
                   </span>
                 ))}
               </div>
-            </div>
+            </button>
           )
         })}
       </div>
 
       <p className="mt-4 text-center text-xs text-white/45">
-        사례를 끌어다 알맞은 역할 바구니에 놓으세요.
+        끌어다 놓거나, 사례를 누른 뒤 알맞은 역할 바구니를 누르세요.
       </p>
     </div>
   )
