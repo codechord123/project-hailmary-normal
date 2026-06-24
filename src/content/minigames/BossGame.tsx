@@ -85,6 +85,7 @@ export function BossGame({
       setCounter(COUNTER_PERIOD)
       return
     }
+    if (counter <= 4) sfx.countdown() // 반격 임박 — 긴박음
     const id = setTimeout(() => setCounter((c) => c - 1), 1000)
     return () => clearTimeout(id)
   }, [counter, status])

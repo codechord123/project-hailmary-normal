@@ -74,6 +74,27 @@ export const sfx = {
       setTimeout(() => tone(f, 110, 'sawtooth', 0.16), i * 90),
     )
   },
+  /** 아이템 구매 — 동전 블립 */
+  buy: () => {
+    tone(880, 50, 'square', 0.1)
+    setTimeout(() => tone(1320, 70, 'square', 0.1), 45)
+  },
+  /** 보호막 장착 — 반짝 */
+  shield: () => {
+    tone(520, 70, 'sine', 0.12)
+    setTimeout(() => tone(780, 90, 'sine', 0.12), 60)
+    setTimeout(() => tone(1040, 120, 'triangle', 0.1), 130)
+  },
+  /** 생명 획득 — 상승음 */
+  lifeUp: () => {
+    ;[523, 659, 880].forEach((f, i) => setTimeout(() => tone(f, 120, 'triangle', 0.14), i * 90))
+  },
+  /** 파워업/버프 — 짧은 아르페지오 */
+  powerUp: () => {
+    ;[440, 660, 990].forEach((f, i) => setTimeout(() => tone(f, 80, 'square', 0.1), i * 55))
+  },
+  /** 카운트다운 긴박음 — 시간이 얼마 안 남았을 때 */
+  countdown: () => tone(1100, 70, 'square', 0.12),
   bossDie: () => {
     ;[300, 240, 180, 120, 80, 40].forEach((f, i) =>
       setTimeout(() => tone(f, 180, 'sawtooth', 0.2), i * 110),

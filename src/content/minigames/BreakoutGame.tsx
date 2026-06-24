@@ -157,10 +157,10 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
           if (caught) {
             items.current.splice(i, 1)
             if (it.type === 'quiz') { pausedRef.current = true; setQuiz(nextQuiz()); sfx.tick?.() }
-            else if (it.type === 'points') { setScore((s) => s + 50); flashBuff('✨ +50점'); sfx.correct() }
-            else if (it.type === 'life') { lives.addLife(); flashBuff('❤️ 생명 +1'); sfx.correct() }
-            else if (it.type === 'expand') { pwRef.current = PW * 1.6; expandFrames.current = 480; flashBuff('⬌ 패들 확장!'); sfx.correct() }
-            else if (it.type === 'slow') { if (slowFrames.current === 0) { ball.current.vx *= 0.7; ball.current.vy *= 0.7 } slowFrames.current = 360; flashBuff('🐢 공 느려짐'); sfx.correct() }
+            else if (it.type === 'points') { setScore((s) => s + 50); flashBuff('✨ +50점'); sfx.powerUp() }
+            else if (it.type === 'life') { lives.addLife(); flashBuff('❤️ 생명 +1'); sfx.lifeUp() }
+            else if (it.type === 'expand') { pwRef.current = PW * 1.6; expandFrames.current = 480; flashBuff('⬌ 패들 확장!'); sfx.powerUp() }
+            else if (it.type === 'slow') { if (slowFrames.current === 0) { ball.current.vx *= 0.7; ball.current.vy *= 0.7 } slowFrames.current = 360; flashBuff('🐢 공 느려짐'); sfx.powerUp() }
           } else if (it.y > H) items.current.splice(i, 1)
         }
       }

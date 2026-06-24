@@ -69,6 +69,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
       setIdx((i) => i + 1)
       return
     }
+    if (qTime <= 3) sfx.countdown() // 시간 임박 — 긴박음
     const id = setTimeout(() => setQTime((t) => t - 1), 1000)
     return () => clearTimeout(id)
   }, [qTime, status])

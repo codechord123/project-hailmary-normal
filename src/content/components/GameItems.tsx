@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { useGameStore } from '@/store/gameStore'
+import { sfx } from '@/lib/sfx'
 
 const MAX_HEARTS = 5
 
@@ -55,7 +56,13 @@ export function GameItemBar({ items }: { items: ShopItem[] }) {
           <button
             key={it.id}
             disabled={!afford}
-            onClick={() => { addEnergy(-it.cost); it.onBuy() }}
+            onClick={() => {
+              addEnergy(-it.cost)
+              if (it.id === 'shield') sfx.shield()
+              else if (it.id === 'life') sfx.lifeUp()
+              else sfx.buy()
+              it.onBuy()
+            }}
             className="px-2 py-1 rounded-lg text-xs font-bold border border-white/15 bg-white/5 disabled:opacity-30 enabled:hover:bg-white/10 transition"
             title={it.label}
           >
