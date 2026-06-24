@@ -10,6 +10,7 @@ import { MatchingGame } from '@/content/minigames/MatchingGame'
 import { MemoryGame } from '@/content/minigames/MemoryGame'
 import { BossGame } from '@/content/minigames/BossGame'
 import { DetectiveGame } from '@/content/minigames/DetectiveGame'
+import { BreakoutGame } from '@/content/minigames/BreakoutGame'
 import { SortingGame } from '@/content/minigames/SortingGame'
 import { OxRushGame } from '@/content/minigames/OxRushGame'
 
@@ -150,6 +151,19 @@ export function ChapterPlay() {
         intro={chapter.intro}
         bossName="편견 빌런"
         bossEmoji="👾"
+        onAnswer={onAnswer}
+        onClear={onClear}
+        onExit={backToUnit}
+      />
+    )
+  }
+
+  if (chapter.mechanic === 'breakout') {
+    return (
+      <BreakoutGame
+        problems={chapter.problems}
+        title={chapter.title}
+        intro={chapter.intro}
         onAnswer={onAnswer}
         onClear={onClear}
         onExit={backToUnit}

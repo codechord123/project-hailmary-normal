@@ -8,7 +8,7 @@ import type { ChapterDef } from '@/content/types'
 export const chapter6: ChapterDef = {
   id: 'law-rights-6',
   title: '인권을 지키는 방법',
-  mechanic: 'finalboss',
+  mechanic: 'breakout',
   intro: '마지막 관문! 사람들의 권리를 빼앗으려는 "권리침해 대마왕"과의 결전이에요. 배운 모든 것을 쏟아부어요!',
   story: [
     '마지막 결전! "권리침해 대마왕"이 모두의 권리를 빼앗으려 해요.',

@@ -17,6 +17,7 @@ const MECHANIC: Record<string, { label: string; icon: string }> = {
   detective: { label: '오답 탐정', icon: '🕵️' },
   boss: { label: '보스전', icon: '👾' },
   finalboss: { label: '최종보스', icon: '🐉' },
+  breakout: { label: '벽돌깨기', icon: '🧱' },
 }
 
 /**
