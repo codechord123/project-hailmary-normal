@@ -184,9 +184,13 @@ export function ChapterPlay() {
   }
 
   if (chapter.mechanic === 'breakout') {
+    // 클라이맥스 — 단원 전체의 문제(짝짓기 제외)를 모아 더 다양하게 출제
+    const quizPool = unit.chapters
+      .flatMap((c) => c.problems)
+      .filter((p) => p.kind === 'mcq' || p.kind === 'ox')
     return (
       <BreakoutGame
-        problems={chapter.problems}
+        problems={quizPool.length >= 12 ? quizPool : chapter.problems}
         title={chapter.title}
         intro={chapter.intro}
         onAnswer={onAnswer}
