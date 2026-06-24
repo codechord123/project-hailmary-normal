@@ -38,7 +38,8 @@ const QUIZ_EVERY = 7 // 벽돌 7개 깰 때마다 문제 출제
 const START_HEARTS = BALANCE.hearts
 
 const ITEM_EMOJI: Record<ItemType, string> = { quiz: '📝', points: '✨', expand: '⬌', slow: '🐢', life: '❤️', multi: '➕', fire: '🔥', bomb: '💣' }
-const ITEM_BAG: ItemType[] = ['quiz', 'points', 'points', 'expand', 'expand', 'slow', 'slow', 'life', 'multi', 'multi', 'fire', 'fire', 'bomb', 'bomb']
+// 문제(📝)는 아이템으로 떨어지지 않고 별도 큐에 쌓인다. 폭탄은 1개로 빈도↓
+const ITEM_BAG: ItemType[] = ['points', 'points', 'expand', 'expand', 'slow', 'slow', 'life', 'multi', 'multi', 'fire', 'fire', 'bomb']
 
 const BRICK: Record<BrickType, { hp: number; pts: number; emoji?: string }> = {
   normal: { hp: 1, pts: 10 },
@@ -92,7 +93,8 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
   const items = useRef<Item[]>([])
   const floats = useRef<FloatText[]>([])
   const comboRef = useRef(0)
-  const destroyedRef = useRef(0) // 마지막 문제 이후 깬 벽돌 수
+  const destroyedRef = useRef(0) // 마지막 적립 이후 깬 벽돌 수
+  const pendingRef = useRef(0) // 쌓인(아직 안 푼) 문제 수
   const levelRef = useRef(1)
   const prevPattern = useRef(-1)
   const pausedRef = useRef(false)
@@ -109,6 +111,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
   const [bestCombo, setBestCombo] = useState(0)
   const [bricksLeft, setBricksLeft] = useState(0)
   const [ballCount, setBallCount] = useState(1)
+  const [pending, setPending] = useState(0) // 쌓인 문제 수(UI)
   const [level, setLevel] = useState(1)
   const [buffs, setBuffs] = useState<{ expand: boolean; slow: boolean; fire: boolean }>({ expand: false, slow: false, fire: false })
   const [buff, setBuff] = useState<string | null>(null)
@@ -206,10 +209,11 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
       if (alive.length === 0) return
       const t = alive[Math.floor(Math.random() * alive.length)]
       const cx = t.x + t.w / 2, cy = t.y + BRICK_H / 2
-      fx.shake(12); fx.freeze(5); fx.screenFlash(0.35, '244,63,94'); sfx.crit()
+      fx.shake(7); fx.freeze(3); fx.screenFlash(0.22, '244,63,94'); sfx.crit()
+      // 작은 범위만 파괴(약화) — 폭발 벽돌보다 좁게
       for (const o of bricks.current) {
         if (o.hp <= 0) continue
-        if (Math.hypot((o.x + o.w / 2) - cx, (o.y + BRICK_H / 2) - cy) < 70) destroyBrick(o, true)
+        if (Math.hypot((o.x + o.w / 2) - cx, (o.y + BRICK_H / 2) - cy) < 40) destroyBrick(o, true)
       }
     }
 
@@ -290,11 +294,11 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         if (runningRef.current && bricksLeftRef.current <= 0) advanceLevel()
         else if (runningRef.current && balls.current.length === 0) loseLife()
 
-        // 일정 수의 벽돌을 깰 때마다 문제 출제(아이템과 별개로 보장)
-        if (runningRef.current && !pausedRef.current && destroyedRef.current >= QUIZ_EVERY) {
+        // 일정 수의 벽돌을 깰 때마다 문제를 "큐에 적립"(게임 흐름을 끊지 않음)
+        if (runningRef.current && destroyedRef.current >= QUIZ_EVERY) {
           destroyedRef.current = 0
-          pausedRef.current = true
-          setQuiz(nextQuiz())
+          pendingRef.current++
+          setPending(pendingRef.current)
           sfx.tick?.()
         }
 
@@ -307,7 +311,6 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
             items.current.splice(i, 1)
             fx.burst(it.x, PADDLE_Y, { count: 10, color: ['#fde047', '#fff'], speed: 2.6 })
             switch (it.type) {
-              case 'quiz': pausedRef.current = true; setQuiz(nextQuiz()); sfx.tick?.(); break
               case 'points': setScore((s) => s + 50); addFloat(it.x, PADDLE_Y - 14, '+50', '#fde047'); flashBuff('✨ +50점'); sfx.powerUp(); break
               case 'life': lives.addLife(); flashBuff('❤️ 생명 +1'); sfx.lifeUp(); break
               case 'expand': pwRef.current = PW * 1.6; expandFrames.current = 540; setBuffs((b) => ({ ...b, expand: true })); flashBuff('⬌ 패들 확장!'); sfx.powerUp(); break
@@ -417,13 +420,20 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
   const starCount = starsFromHearts(lives.hearts, lives.startHearts)
 
   const restart = () => {
-    levelRef.current = 1; setLevel(1); prevPattern.current = -1; destroyedRef.current = 0
+    levelRef.current = 1; setLevel(1); prevPattern.current = -1; destroyedRef.current = 0; pendingRef.current = 0
     initBricks(); spawnBall(); items.current = []; floats.current = []; comboRef.current = 0
     quizQueue.current = shuffle(quizPool)
     pwRef.current = PW; expandFrames.current = 0; slowFrames.current = 0; fireFrames.current = 0; slowMul.current = 1
     setBuffs({ expand: false, slow: false, fire: false })
     pausedRef.current = false; runningRef.current = true
-    lives.reset(); setScore(0); setCombo(0); setBestCombo(0); setQuiz(null); setStatus('play')
+    lives.reset(); setScore(0); setCombo(0); setBestCombo(0); setPending(0); setQuiz(null); setStatus('play')
+  }
+
+  // 쌓인 문제 풀기 시작 — 게임을 멈추고 첫 문제를 띄운다(이후 차례로)
+  const startSolving = () => {
+    if (pendingRef.current <= 0 || pausedRef.current || status !== 'play') return
+    pausedRef.current = true
+    setQuiz(nextQuiz())
   }
 
   const onQuizResult = (correct: boolean) => {
@@ -439,7 +449,14 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
       fx.shake(8); fx.screenFlash(0.4, '253,224,71')
       setBricksLeft(bricksLeftRef.current)
     } else { sfx.wrong(); comboRef.current = 0; setCombo(0) }
-    setQuiz(null); pausedRef.current = false
+    // 큐에서 하나 소진 → 남았으면 다음 문제, 없으면 게임 재개
+    pendingRef.current = Math.max(0, pendingRef.current - 1)
+    setPending(pendingRef.current)
+    if (pendingRef.current > 0) {
+      setQuiz(nextQuiz())
+    } else {
+      setQuiz(null); pausedRef.current = false
+    }
   }
 
   const pointerMove = (clientX: number) => {
@@ -484,6 +501,19 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
       </header>
       <div className="mt-1 text-center text-sm font-bold text-indigo-200">🧱 {title}</div>
 
+      {/* 쌓인 문제 — 원할 때 눌러서 차례로 풀기(게임을 끊지 않음) */}
+      <button
+        onClick={startSolving}
+        disabled={pending <= 0}
+        className={`mt-2 w-full rounded-xl py-2 text-sm font-bold transition border ${
+          pending > 0
+            ? 'bg-amber-400/20 border-amber-300/60 text-amber-100 hover:bg-amber-400/30 animate-pulse'
+            : 'bg-white/5 border-white/10 text-white/35'
+        }`}
+      >
+        {pending > 0 ? `📝 쌓인 문제 ${pending}개 — 눌러서 차례로 풀기 (벽돌 보너스!)` : '📝 깨다 보면 문제가 여기 쌓여요'}
+      </button>
+
       <div className="mt-2 flex items-center gap-2">
         <div className="flex-1">
           <GameItemBar items={[
@@ -509,13 +539,14 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         className="mt-1 w-full rounded-xl border-2 border-white/15 bg-black touch-none shadow-[0_0_30px_rgba(59,130,246,0.15)]"
         style={{ aspectRatio: `${W} / ${H}` }}
       />
-      <p className="mt-1 text-center text-[11px] text-white/40">📝문제 ✨점수 ⬌확장 🐢슬로우 ❤️생명 ➕멀티볼 🔥파이어볼 💣폭탄 · 💥🔩 특수 벽돌!</p>
+      <p className="mt-1 text-center text-[11px] text-white/40">✨점수 ⬌확장 🐢슬로우 ❤️생명 ➕멀티볼 🔥파이어볼 💣폭탄 · 💥🔩 특수 벽돌!</p>
       {intro && <p className="text-center text-[11px] text-white/30">{intro}</p>}
 
       {quiz && (
         <div className="fixed inset-0 z-40 bg-black/70 flex items-center justify-center px-4">
           <div className="w-full max-w-md rounded-2xl bg-space-900 border border-white/15 p-5">
-            <div className="text-center text-sm font-bold text-amber-200 mb-2">📝 문제를 풀면 벽돌이 와르르!</div>
+            <div className="text-center text-sm font-bold text-amber-200 mb-1">📝 문제를 풀면 벽돌이 와르르!</div>
+            <div className="text-center text-[11px] text-white/50 mb-2">남은 문제 {pending}개 · 차례로 풀어요</div>
             <QuickAnswer key={quiz.id} problem={quiz} onResult={onQuizResult} />
           </div>
         </div>
