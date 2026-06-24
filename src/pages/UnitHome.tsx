@@ -34,11 +34,14 @@ export function UnitHome() {
   // 공유 프로필 (과목·단원이 달라도 한 계정에서 공유)
   const totalXp = useGameStore((s) => s.totalXp)
   const energy = useGameStore((s) => s.energy)
+  const currentStreak = useGameStore((s) => s.currentStreak)
+  const touchDailyStreak = useGameStore((s) => s.touchDailyStreak)
 
-  // 이 단원을 "지금 학습 중인 단원"으로 기억
+  // 이 단원을 "지금 학습 중인 단원"으로 기억 + 오늘 출석 체크(연속 출석)
   useEffect(() => {
     if (unit) setActiveUnit(unit.id)
-  }, [unit, setActiveUnit])
+    touchDailyStreak()
+  }, [unit, setActiveUnit, touchDailyStreak])
 
   if (!unit) return <Navigate to="/subjects" replace />
 
@@ -70,6 +73,11 @@ export function UnitHome() {
           <span className="px-2 py-1 rounded-full bg-indigo-500/20 text-indigo-100 font-bold">Lv.{level}</span>
           <span className="px-2 py-1 rounded-full bg-yellow-400/15 text-yellow-100">⚡ {energy}</span>
           <span className="px-2 py-1 rounded-full bg-amber-400/15 text-amber-100">⭐ {totalStars}</span>
+          {currentStreak > 0 && (
+            <span className="px-2 py-1 rounded-full bg-orange-500/20 text-orange-100 font-bold" title="연속 출석">
+              🔥 {currentStreak}일 연속
+            </span>
+          )}
         </div>
         <p className="mt-1 text-[11px] text-white/35">레벨·에너지·의상·상점은 모든 과목과 공유돼요</p>
         {/* 단원 진행도 */}
@@ -95,6 +103,26 @@ export function UnitHome() {
             const m = MECHANIC[ch.mechanic] ?? { label: ch.mechanic, icon: '🎮' }
             const stars = prog.stars[ch.id] ?? 0
             const cleared = prog.cleared.includes(ch.id)
+            // 잠금: 첫 챕터는 항상 열림, 그 외엔 직전 챕터에서 별 1개 이상 받아야 해금
+            const prevStars = i === 0 ? 1 : prog.stars[unit.chapters[i - 1].id] ?? 0
+            const locked = i > 0 && prevStars < 1
+
+            if (locked) {
+              return (
+                <div
+                  key={ch.id}
+                  className="rounded-2xl bg-white/[0.03] border border-white/10 p-4 flex items-center gap-4 opacity-60 cursor-not-allowed"
+                  aria-disabled="true"
+                >
+                  <span className="text-3xl grayscale">🔒</span>
+                  <span className="flex flex-col flex-1">
+                    <span className="text-xs text-white/40">챕터 {i + 1} · {m.label}</span>
+                    <span className="text-lg font-bold text-white/50">{ch.title}</span>
+                    <span className="text-xs text-white/35">앞 챕터를 ★ 1개 이상으로 깨면 열려요</span>
+                  </span>
+                </div>
+              )
+            }
             return (
               <Link
                 key={ch.id}

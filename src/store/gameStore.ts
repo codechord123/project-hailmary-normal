@@ -46,6 +46,11 @@ interface GameState {
   presentationMode: boolean
   bgmEnabled: boolean
   bgmVolume: number // 0..1
+  // 리텐션 (연속 출석)
+  lastPlayedDate: string // 'YYYY-M-D'
+  currentStreak: number
+  longestStreak: number
+  lastFirstClearDate: string
 
   // actions
   setStudentName: (name: string) => void
@@ -72,6 +77,10 @@ interface GameState {
   baseTimePerProblem: () => number
   /** 과목 중립 성장 효과 — 모든 콘텐츠 미니게임에 공통 적용 */
   combatMods: () => CombatMods
+  /** 오늘 출석 체크 — 연속 출석(streak) 갱신. 새 날이면 isNewDay=true */
+  touchDailyStreak: () => { streak: number; isNewDay: boolean }
+  /** 오늘 첫 클리어면 true(보너스 지급용). 한 번 호출하면 오늘은 소진 */
+  claimDailyFirstClear: () => boolean
 }
 
 /** 스탯에서 파생되는, 과목과 무관한 게임 효과 */
@@ -88,6 +97,15 @@ export interface CombatMods {
 
 const INITIAL_STATS: Stats = { lung: 0, reflex: 0, intuition: 0, luck: 0 }
 const INITIAL_COSMETICS: Cosmetics = { suit: 'white', helmet: 'round' }
+
+/** 로컬 기준 오늘 날짜 키 'YYYY-M-D' */
+const dateKey = (d: Date): string => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+const todayKey = (): string => dateKey(new Date())
+const yesterdayKey = (): string => {
+  const d = new Date()
+  d.setDate(d.getDate() - 1)
+  return dateKey(d)
+}
 
 const INITIAL = {
   oxygen: 100,
@@ -106,6 +124,10 @@ const INITIAL = {
   presentationMode: false,
   bgmEnabled: true,
   bgmVolume: 0.5,
+  lastPlayedDate: '',
+  currentStreak: 0,
+  longestStreak: 0,
+  lastFirstClearDate: '',
 }
 
 const safeStorage = createJSONStorage(() => {
@@ -230,11 +252,30 @@ export const useGameStore = create<GameState>()(
       togglePresentationMode: () => set((s) => ({ presentationMode: !s.presentationMode })),
       toggleBgmEnabled: () => set((s) => ({ bgmEnabled: !s.bgmEnabled })),
       setBgmVolume: (v) => set({ bgmVolume: Math.max(0, Math.min(1, v)) }),
+      touchDailyStreak: () => {
+        const today = todayKey()
+        const s = get()
+        if (s.lastPlayedDate === today) return { streak: s.currentStreak, isNewDay: false }
+        const continued = s.lastPlayedDate === yesterdayKey()
+        const streak = continued ? s.currentStreak + 1 : 1
+        set({
+          lastPlayedDate: today,
+          currentStreak: streak,
+          longestStreak: Math.max(s.longestStreak, streak),
+        })
+        return { streak, isNewDay: true }
+      },
+      claimDailyFirstClear: () => {
+        const today = todayKey()
+        if (get().lastFirstClearDate === today) return false
+        set({ lastFirstClearDate: today })
+        return true
+      },
       reset: () => set({ ...INITIAL }),
     }),
     {
       name: 'hailmary-save',
-      version: 5,
+      version: 6,
       storage: safeStorage,
       migrate: (persisted: any, version) => {
         if (!persisted) return persisted
@@ -270,6 +311,16 @@ export const useGameStore = create<GameState>()(
         if (version < 5) {
           // chapterRecords에 elapsedMs/accuracy/attempts 필드 없는 옛 데이터 호환
           p = { ...p, chapterRecords: p.chapterRecords ?? {} }
+        }
+        if (version < 6) {
+          // 연속 출석(streak) 필드 추가
+          p = {
+            ...p,
+            lastPlayedDate: p.lastPlayedDate ?? '',
+            currentStreak: p.currentStreak ?? 0,
+            longestStreak: p.longestStreak ?? 0,
+            lastFirstClearDate: p.lastFirstClearDate ?? '',
+          }
         }
         return p
       },

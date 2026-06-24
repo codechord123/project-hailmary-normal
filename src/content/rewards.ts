@@ -48,8 +48,15 @@ export function awardClear(opts: ClearReward = {}) {
     energy = Math.round(energy * 1.5)
   }
 
+  // 오늘의 첫 클리어 보너스 (매일 돌아올 이유)
+  const firstToday = s.claimDailyFirstClear()
+  if (firstToday) {
+    xp += 30
+    energy += 15
+  }
+
   s.addEnergy(energy)
   const r = s.addXp(xp)
   if (r.leveledUp) sfx.levelUp()
-  return { xp, energy, lucky }
+  return { xp, energy, lucky, firstToday }
 }
