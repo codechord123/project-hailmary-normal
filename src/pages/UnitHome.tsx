@@ -14,6 +14,7 @@ const MECHANIC: Record<string, { label: string; icon: string }> = {
   matching: { label: '매칭', icon: '🃏' },
   memory: { label: '메모리 카드', icon: '🃏' },
   oxrush: { label: 'OX 번개', icon: '⚡' },
+  detective: { label: '오답 탐정', icon: '🕵️' },
   boss: { label: '보스전', icon: '👾' },
   finalboss: { label: '최종보스', icon: '🐉' },
 }

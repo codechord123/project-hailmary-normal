@@ -8,7 +8,7 @@ import type { ChapterDef } from '@/content/types'
 export const chapter5: ChapterDef = {
   id: 'law-rights-5',
   title: '인권을 지킨 사람들',
-  mechanic: 'boss',
+  mechanic: 'detective',
   intro: '"권리는 내가 정하는 거야!" 편견 빌런이 나타났어요. 인권을 지킨 사람들의 이야기로 빌런을 무찔러요!',
   story: [
     '"권리는 힘센 내가 정하는 거야!" 편견 빌런이 나타났어요.',
