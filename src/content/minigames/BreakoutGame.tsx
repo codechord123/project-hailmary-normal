@@ -25,9 +25,9 @@ const PW = 76 // 패들 너비
 const PH = 12
 const PADDLE_Y = H - 34
 const SPEED = 4.2
-const COLS = 6
-const ROWS = 4
-const BRICK_H = 20
+const COLS = 7
+const ROWS = 6
+const BRICK_H = 18
 const ITEM_VY = 2.4
 const START_HEARTS = BALANCE.hearts
 
@@ -141,7 +141,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
             bricksLeftRef.current -= 1
             setBricksLeft(bricksLeftRef.current)
             setScore((s) => s + 10)
-            if (Math.random() < 0.32) items.current.push({ x: br.x + br.w / 2, y: br.y })
+            if (Math.random() < 0.5) items.current.push({ x: br.x + br.w / 2, y: br.y })
             if (bricksLeftRef.current <= 0) { runningRef.current = false; setStatus('clear'); sfx.clear() }
             break
           }

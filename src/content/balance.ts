@@ -22,7 +22,10 @@ export const BALANCE = {
     qRampPerCorrect: 0.4, // 정답당 단축 폭
   },
   runner: {
-    gateMs: 4500, // 관문 도달 시간(작을수록 빠름)
+    obstacleSpeed: 2.6, // 장애물 낙하 속도(px/frame)
+    spawnMs: 850, // 장애물 생성 간격(ms)
+    dodgePerCheckpoint: 4, // 체크포인트(문제)까지 피해야 할 장애물 수
+    checkpoints: 6, // 클리어에 필요한 체크포인트(문제) 수
   },
   timed: {
     minBudgetSec: 30, // 시간제 게임 최소 제한시간
