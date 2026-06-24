@@ -1,4 +1,4 @@
-import type { UnitDef } from '@/content/types'
+import type { ChapterDef, UnitDef } from '@/content/types'
 import { chapter1 } from './chapter1'
 import { chapter2 } from './chapter2'
 import { chapter3 } from './chapter3'
@@ -6,6 +6,13 @@ import { chapter4 } from './chapter4'
 import { chapter5 } from './chapter5'
 import { chapter6 } from './chapter6'
 import { chapter7 } from './chapter7'
+import { APPLIED } from './applied'
+
+/** 챕터 문제 풀에 응용·심화 문제를 합친다(적용·판단형 비중 ↑). */
+const withApplied = (ch: ChapterDef): ChapterDef => ({
+  ...ch,
+  problems: [...ch.problems, ...(APPLIED[ch.id] ?? [])],
+})
 
 /**
  * 단원: 사회 5-1 「법의 역할과 인권」
@@ -31,5 +38,5 @@ export const lawAndRightsUnit: UnitDef = {
       { level: 8, title: '인권 챔피언' },
     ],
   },
-  chapters: [chapter1, chapter2, chapter3, chapter4, chapter5, chapter6, chapter7],
+  chapters: [chapter1, chapter2, chapter3, chapter4, chapter5, chapter6, chapter7].map(withApplied),
 }

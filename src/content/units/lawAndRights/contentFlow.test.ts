@@ -56,6 +56,14 @@ describe('법과 인권 — 정답 판정·미니게임 데이터 적합성', ()
     expect(withExplain / all.length).toBeGreaterThanOrEqual(0.9)
   })
 
+  it('응용·심화(시나리오 기반) 문항이 충분히 들어 있다', () => {
+    const scenarioProblems = all.filter((p) => p.scenario && p.scenario.length > 10)
+    // 생활 장면 기반 적용형 문항이 30개 이상
+    expect(scenarioProblems.length).toBeGreaterThanOrEqual(30)
+    // 심화(난이도 3) 문항도 존재
+    expect(all.filter((p) => p.difficulty === 3).length).toBeGreaterThanOrEqual(8)
+  })
+
   it('등록부에서 단원을 id로 찾을 수 있다', () => {
     expect(findUnit(lawAndRightsUnit.id)?.title).toBe(lawAndRightsUnit.title)
   })
