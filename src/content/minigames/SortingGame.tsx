@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
@@ -60,7 +60,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   }, [round])
 
   const [assigned, setAssigned] = useState<Record<number, string>>({})
-  const [selected, setSelected] = useState<number | null>(null)
+  const bucketRefs = useRef<Record<string, HTMLDivElement | null>>({})
   const [wrong, setWrong] = useState<number | null>(null)
   const [mistakes, setMistakes] = useState(0)
   const [combo, setCombo] = useState(0)
@@ -92,7 +92,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   const stars = starsFromMistakes(mistakes)
 
   const restart = () => {
-    setRoundIdx(0); setAssigned({}); setSelected(null); setWrong(null)
+    setRoundIdx(0); setAssigned({}); setWrong(null)
     setMistakes(0); setCombo(0); setTimeLeft(budget); setStatus('play')
   }
 
@@ -114,18 +114,17 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
     )
   }
 
-  const place = (category: string) => {
-    if (status !== 'play' || selected === null) return
-    const item = items.find((it) => it.idx === selected)
+  const placeItem = (itemIdx: number, category: string) => {
+    if (status !== 'play' || assigned[itemIdx] !== undefined) return
+    const item = items.find((it) => it.idx === itemIdx)
     if (!item) return
     if (item.category === category) {
       const c = combo + 1
       setCombo(c)
       juice.correct(c, { x: 0.5 })
       sfx.correct()
-      const next = { ...assigned, [selected]: category }
+      const next = { ...assigned, [itemIdx]: category }
       setAssigned(next)
-      setSelected(null)
       onAward?.(true)
       if (Object.keys(next).length >= items.length) {
         if (roundIdx + 1 >= rounds.length) { setStatus('clear'); sfx.clear() }
@@ -135,12 +134,24 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
       sfx.wrong()
       setCombo(0)
       setMistakes((m) => m + 1)
-      setWrong(selected)
+      setWrong(itemIdx)
       setRevealCat(`'${item.text}' → '${item.category}'`)
       onAward?.(false)
       setTimeout(() => setWrong(null), 350)
       setTimeout(() => setRevealCat(null), 1400)
-      setSelected(null)
+    }
+  }
+
+  // 드롭 지점이 어느 바구니 위인지 판정
+  const handleDrop = (itemIdx: number, point: { x: number; y: number }) => {
+    for (const cat of categories) {
+      const el = bucketRefs.current[cat]
+      if (!el) continue
+      const r = el.getBoundingClientRect()
+      if (point.x >= r.left && point.x <= r.right && point.y >= r.top && point.y <= r.bottom) {
+        placeItem(itemIdx, cat)
+        return
+      }
     }
   }
 
@@ -175,19 +186,20 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
       )}
 
       <div className="mt-4">
-        <div className="text-[11px] text-white/40 font-bold mb-1">분류할 사례 (눌러서 선택)</div>
+        <div className="text-[11px] text-white/40 font-bold mb-1">분류할 사례 (끌어다 바구니에 놓기)</div>
         <div className="flex flex-wrap gap-2 min-h-[3rem]">
           {pool.length === 0 ? (
             <span className="text-white/40 text-sm">모두 분류했어요!</span>
           ) : pool.map((it) => (
             <motion.button
               key={it.idx}
-              onClick={() => setSelected(it.idx)}
+              drag
+              dragSnapToOrigin
+              whileDrag={{ scale: 1.12, zIndex: 50 }}
+              onDragEnd={(_, info) => handleDrop(it.idx, info.point)}
               animate={wrong === it.idx ? { x: [0, -6, 6, 0] } : {}}
               transition={{ duration: 0.3 }}
-              className={`px-3 py-2 rounded-lg text-sm border transition ${
-                selected === it.idx ? 'border-yellow-300 bg-yellow-300/15 text-white' : 'border-white/15 bg-white/5 text-white/90 hover:bg-white/10'
-              }`}
+              className="px-3 py-2 rounded-lg text-sm border border-white/15 bg-white/5 text-white/90 cursor-grab active:cursor-grabbing touch-none select-none"
             >
               {it.text}
             </motion.button>
@@ -205,13 +217,10 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
         {categories.map((cat) => {
           const inside = items.filter((it) => assigned[it.idx] === cat)
           return (
-            <button
+            <div
               key={cat}
-              onClick={() => place(cat)}
-              disabled={selected === null}
-              className={`text-left rounded-xl border p-3 transition min-h-[5rem] ${
-                selected !== null ? 'border-indigo-400/60 bg-indigo-400/10 hover:bg-indigo-400/20' : 'border-white/15 bg-white/5'
-              }`}
+              ref={(el) => { bucketRefs.current[cat] = el }}
+              className="text-left rounded-xl border-2 border-dashed border-indigo-400/40 bg-indigo-400/5 p-3 min-h-[5.5rem]"
             >
               <div className="text-sm font-bold text-white mb-1">📦 {cat}</div>
               <div className="flex flex-wrap gap-1">
@@ -221,13 +230,13 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
                   </span>
                 ))}
               </div>
-            </button>
+            </div>
           )
         })}
       </div>
 
       <p className="mt-4 text-center text-xs text-white/45">
-        사례를 누른 뒤, 알맞은 역할 바구니를 누르세요.
+        사례를 끌어다 알맞은 역할 바구니에 놓으세요.
       </p>
     </div>
   )
