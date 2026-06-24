@@ -20,17 +20,16 @@ type Quizable = Extract<ContentProblem, { kind: 'mcq' | 'ox' }>
 
 const W = 360
 const H = 520
-const LANES = 3
-const laneX = (i: number) => (i + 0.5) * (W / LANES)
-const CAR_Y = H - 70
-const SPEED = BALANCE.runner.obstacleSpeed
-const SPAWN_MS = BALANCE.runner.spawnMs
-const PER_CHECK = BALANCE.runner.dodgePerCheckpoint
-const GOAL = BALANCE.runner.checkpoints
+const CAR_Y = H - 64
+const CAR_W = 40
 const START_HEARTS = BALANCE.hearts
-const OBSTACLES = ['🚧', '🪨', '🛢️', '🚌', '⚠️']
+const BASE_SPEED = BALANCE.runner.obstacleSpeed
+const OBS_MS = BALANCE.runner.obstacleSpawnMs
+const CARD_MS = BALANCE.runner.cardSpawnMs
+const GOAL = BALANCE.runner.problemsToClear
+const OBSTACLES = ['🚧', '🪨', '🛢️', '🚌', '🚙', '⚠️']
 
-interface Obstacle { id: number; lane: number; y: number; emoji: string; hit: boolean; passed: boolean }
+interface Ent { id: number; kind: 'obstacle' | 'card'; x: number; y: number; emoji: string; hit: boolean }
 
 const shuffle = <T,>(arr: T[]): T[] => {
   const a = [...arr]
@@ -42,51 +41,52 @@ const shuffle = <T,>(arr: T[]): T[] => {
 }
 
 /**
- * 자동차 장애물 피하기 + 체크포인트 퀴즈 (챕터 「법이 뭐길래?」).
- * 차를 좌우 차선으로 옮겨 장애물을 피하고, 일정 수를 피하면 체크포인트에서 문제를 푼다.
- * 캔버스+rAF로 끊김 없이 흐른다.
+ * 자동차 질주 (챕터 「법이 뭐길래?」).
+ * 차를 자유롭게 좌우로 움직여 장애물은 피하고, 문제 카드(📝)는 일부러 받아 푼다.
+ * 캔버스+rAF, 시간이 갈수록 빨라지는 긴장감. 목숨/점수.
  */
 export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }: Props) {
   const quizPool = problems.filter((p): p is Quizable => p.kind === 'mcq' || p.kind === 'ox')
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
-  const carLane = useRef(1)
-  const obstacles = useRef<Obstacle[]>([])
-  const oidRef = useRef(0)
-  const dodgedRef = useRef(0)
-  const nextCheckRef = useRef(PER_CHECK)
-  const invulnRef = useRef(0) // 남은 무적 프레임
-  const lastSpawnRef = useRef(0)
+  const carX = useRef(W / 2)
+  const ents = useRef<Ent[]>([])
+  const idRef = useRef(0)
+  const invulnRef = useRef(0)
+  const obsTimer = useRef(0)
+  const cardTimer = useRef(0)
+  const elapsedRef = useRef(0)
   const pausedRef = useRef(false)
   const runningRef = useRef(true)
   const rafRef = useRef(0)
-  const quizQueue = useRef<Quizable[]>([])
+  const queue = useRef<Quizable[]>([])
 
-  const [carLaneState, setCarLaneState] = useState(1)
   const [hearts, setHearts] = useState(START_HEARTS)
   const [score, setScore] = useState(0)
   const [combo, setCombo] = useState(0)
   const [bestCombo, setBestCombo] = useState(0)
-  const [passed, setPassed] = useState(0)
-  const [dodged, setDodged] = useState(0)
+  const [solved, setSolved] = useState(0)
   const [quiz, setQuiz] = useState<Quizable | null>(null)
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
   const juice = useGameJuice()
 
-  const move = (lane: number) => {
-    const l = Math.max(0, Math.min(LANES - 1, lane))
-    carLane.current = l
-    setCarLaneState(l)
+  const moveTo = (clientX: number) => {
+    const c = canvasRef.current
+    if (!c) return
+    const rect = c.getBoundingClientRect()
+    const x = (clientX - rect.left) * (W / rect.width)
+    carX.current = Math.max(CAR_W / 2, Math.min(W - CAR_W / 2, x))
   }
+  const nudge = (dx: number) => { carX.current = Math.max(CAR_W / 2, Math.min(W - CAR_W / 2, carX.current + dx)) }
 
   const nextQuiz = (): Quizable => {
-    if (quizQueue.current.length === 0) quizQueue.current = shuffle(quizPool)
-    return quizQueue.current.shift()!
+    if (queue.current.length === 0) queue.current = shuffle(quizPool)
+    return queue.current.shift()!
   }
 
   useEffect(() => {
     if (quizPool.length === 0) return
-    quizQueue.current = shuffle(quizPool)
+    queue.current = shuffle(quizPool)
     const ctx = canvasRef.current?.getContext('2d')
     let last = performance.now()
 
@@ -94,63 +94,56 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
       const dt = t - last
       last = t
       if (runningRef.current && !pausedRef.current) {
+        elapsedRef.current += dt
         if (invulnRef.current > 0) invulnRef.current -= 1
+        const speed = BASE_SPEED + Math.min(2.4, elapsedRef.current / 20000) // 점점 빨라짐
 
-        // 스폰
-        lastSpawnRef.current += dt
-        if (lastSpawnRef.current >= SPAWN_MS) {
-          lastSpawnRef.current = 0
-          const lane = Math.floor(Math.random() * LANES)
-          obstacles.current.push({ id: ++oidRef.current, lane, y: -20, emoji: OBSTACLES[oidRef.current % OBSTACLES.length], hit: false, passed: false })
+        obsTimer.current += dt
+        if (obsTimer.current >= OBS_MS) {
+          obsTimer.current = 0
+          ents.current.push({ id: ++idRef.current, kind: 'obstacle', x: 24 + Math.random() * (W - 48), y: -20, emoji: OBSTACLES[idRef.current % OBSTACLES.length], hit: false })
+        }
+        cardTimer.current += dt
+        if (cardTimer.current >= CARD_MS) {
+          cardTimer.current = 0
+          ents.current.push({ id: ++idRef.current, kind: 'card', x: 30 + Math.random() * (W - 60), y: -20, emoji: '📝', hit: false })
         }
 
-        // 이동/충돌/통과
-        for (const o of obstacles.current) {
-          o.y += SPEED
-          if (!o.hit && !o.passed && invulnRef.current <= 0 && o.lane === carLane.current && o.y > CAR_Y - 22 && o.y < CAR_Y + 22) {
-            o.hit = true
-            invulnRef.current = 60 // ~1초 무적
-            setCombo(0)
-            sfx.wrong()
-            setHearts((h) => { const n = h - 1; if (n <= 0) { runningRef.current = false; setStatus('over') } return n })
-          }
-          if (!o.passed && o.y > H + 20) {
-            o.passed = true
-            if (!o.hit) {
-              dodgedRef.current += 1
-              setDodged(dodgedRef.current)
-              setScore((s) => s + 10)
-              if (dodgedRef.current >= nextCheckRef.current) {
-                nextCheckRef.current += PER_CHECK
-                pausedRef.current = true
-                setQuiz(nextQuiz())
-                sfx.tick?.()
+        for (const e of ents.current) {
+          e.y += e.kind === 'card' ? speed * 0.85 : speed
+          if (!e.hit && e.y > CAR_Y - 24 && e.y < CAR_Y + 24 && Math.abs(e.x - carX.current) < CAR_W / 2 + 16) {
+            if (e.kind === 'obstacle') {
+              if (invulnRef.current <= 0) {
+                e.hit = true
+                invulnRef.current = 70
+                setCombo(0)
+                sfx.wrong()
+                setHearts((h) => { const n = h - 1; if (n <= 0) { runningRef.current = false; setStatus('over') } return n })
               }
+            } else {
+              e.hit = true
+              pausedRef.current = true
+              setQuiz(nextQuiz())
+              sfx.tick?.()
             }
           }
         }
-        obstacles.current = obstacles.current.filter((o) => o.y < H + 40)
+        ents.current = ents.current.filter((e) => e.y < H + 30 && !e.hit)
+        setScore((s) => s + 1) // 거리 점수
       }
 
       if (ctx) {
         ctx.clearRect(0, 0, W, H)
-        // 도로
-        ctx.fillStyle = 'rgba(255,255,255,0.04)'
-        ctx.fillRect(0, 0, W, H)
-        ctx.strokeStyle = 'rgba(255,255,255,0.12)'
-        ctx.setLineDash([12, 14])
-        for (let i = 1; i < LANES; i++) {
-          ctx.beginPath(); ctx.moveTo((i * W) / LANES, 0); ctx.lineTo((i * W) / LANES, H); ctx.stroke()
+        ctx.fillStyle = 'rgba(255,255,255,0.04)'; ctx.fillRect(0, 0, W, H)
+        ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.setLineDash([14, 16])
+        ctx.beginPath(); ctx.moveTo(W / 2, 0); ctx.lineTo(W / 2, H); ctx.stroke(); ctx.setLineDash([])
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+        for (const e of ents.current) {
+          ctx.font = e.kind === 'card' ? '30px serif' : '30px serif'
+          ctx.fillText(e.emoji, e.x, e.y)
         }
-        ctx.setLineDash([])
-        ctx.font = '30px serif'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        for (const o of obstacles.current) if (!o.hit) ctx.fillText(o.emoji, laneX(o.lane), o.y)
-        // 차 (무적이면 깜빡)
         if (invulnRef.current <= 0 || Math.floor(invulnRef.current / 6) % 2 === 0) {
-          ctx.font = '36px serif'
-          ctx.fillText('🚗', laneX(carLane.current), CAR_Y)
+          ctx.font = '36px serif'; ctx.fillText('🚗', carX.current, CAR_Y)
         }
       }
       rafRef.current = requestAnimationFrame(step)
@@ -160,11 +153,10 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // 키보드 조작
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') move(carLane.current - 1)
-      if (e.key === 'ArrowRight') move(carLane.current + 1)
+      if (e.key === 'ArrowLeft') nudge(-26)
+      if (e.key === 'ArrowRight') nudge(26)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -182,11 +174,11 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
   const stars = starsFromHearts(hearts, START_HEARTS)
 
   const restart = () => {
-    obstacles.current = []; carLane.current = 1; dodgedRef.current = 0
-    nextCheckRef.current = PER_CHECK; invulnRef.current = 0; lastSpawnRef.current = 0
-    quizQueue.current = shuffle(quizPool); pausedRef.current = false; runningRef.current = true
-    setCarLaneState(1); setHearts(START_HEARTS); setScore(0); setCombo(0); setBestCombo(0)
-    setPassed(0); setDodged(0); setQuiz(null); setStatus('play')
+    ents.current = []; carX.current = W / 2; invulnRef.current = 0
+    obsTimer.current = 0; cardTimer.current = 0; elapsedRef.current = 0
+    queue.current = shuffle(quizPool); pausedRef.current = false; runningRef.current = true
+    setHearts(START_HEARTS); setScore(0); setCombo(0); setBestCombo(0); setSolved(0)
+    setQuiz(null); setStatus('play')
   }
 
   const onQuizResult = (correct: boolean) => {
@@ -194,13 +186,8 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
     if (correct) {
       sfx.correct()
       setCombo((c) => { const nc = c + 1; setBestCombo((b) => Math.max(b, nc)); juice.correct(nc, { x: 0.5 }); return nc })
-      setScore((s) => s + 100)
-      obstacles.current = [] // 체크포인트 통과 — 화면 정리
-      setPassed((p) => {
-        const np = p + 1
-        if (np >= GOAL) { runningRef.current = false; setStatus('clear'); sfx.clear() }
-        return np
-      })
+      setScore((s) => s + 150)
+      setSolved((n) => { const ns = n + 1; if (ns >= GOAL) { runningRef.current = false; setStatus('clear'); sfx.clear() } return ns })
     } else {
       sfx.wrong()
       setCombo(0)
@@ -213,7 +200,7 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
   if (status === 'clear') {
     return (
       <GameResult emoji="🏁" title="결승선 도착!" confetti stars={stars}
-        lines={[`체크포인트 ${passed}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
+        lines={[`해결한 문제 ${solved}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
         primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars }) }}
         secondary={{ label: '다시 하기', onClick: restart }} />
     )
@@ -221,7 +208,7 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
   if (status === 'over') {
     return (
       <GameResult emoji="🛑" title="충돌!"
-        lines={[`체크포인트 ${passed}/${GOAL}`, '다시 도전해 볼까요?']}
+        lines={[`해결한 문제 ${solved}/${GOAL}`, '다시 도전해 볼까요?']}
         primary={{ label: '다시 도전', onClick: restart }}
         secondary={{ label: '나가기', onClick: onExit }} />
     )
@@ -234,43 +221,29 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
         <div className="text-sm flex gap-3 items-center">
           <span className="text-rose-300">{'❤️'.repeat(hearts)}{'🤍'.repeat(Math.max(0, START_HEARTS - hearts))}</span>
-          <span className="text-white/60 text-xs">체크포인트 {passed}/{GOAL}</span>
+          <span className="text-white/60 text-xs">📝 {solved}/{GOAL} · 점수 {score}</span>
         </div>
       </header>
 
       <div className="mt-1 text-center text-sm font-bold text-indigo-200">🚗 {title}</div>
-      <div className="text-center text-[11px] text-white/45">다음 문제까지 {Math.max(0, nextCheckRef.current - dodged)}개 피하기 · 점수 {score}</div>
+      <div className="text-center text-[11px] text-white/45">차를 끌어 장애물은 피하고, 📝 문제 카드는 받아서 푸세요!</div>
 
       <canvas
         ref={canvasRef}
         width={W}
         height={H}
-        className="mt-2 w-full rounded-xl border-2 border-white/15 bg-black/40 touch-none"
+        onPointerMove={(e) => { if (e.buttons || e.pointerType === 'touch') moveTo(e.clientX) }}
+        onPointerDown={(e) => moveTo(e.clientX)}
+        className="mt-2 w-full rounded-xl border-2 border-white/15 bg-black/40 touch-none cursor-grab active:cursor-grabbing"
         style={{ aspectRatio: `${W} / ${H}` }}
       />
-
-      {/* 조향 버튼 */}
-      <div className="mt-3 grid grid-cols-3 gap-2">
-        {Array.from({ length: LANES }, (_, lane) => (
-          <button
-            key={lane}
-            onClick={() => move(lane)}
-            aria-label={`${lane + 1}번 차선으로`}
-            className={`py-4 rounded-xl font-bold border-2 transition active:scale-95 ${
-              carLaneState === lane ? 'border-yellow-300 bg-yellow-300/15 text-white' : 'border-white/15 bg-white/5 text-white/80 hover:bg-white/10'
-            }`}
-          >
-            {['◀ 왼쪽', '▲ 가운데', '오른쪽 ▶'][lane]}
-          </button>
-        ))}
-      </div>
 
       {intro && <p className="mt-2 text-center text-[11px] text-white/35">{intro}</p>}
 
       {quiz && (
         <div className="fixed inset-0 z-40 bg-black/70 flex items-center justify-center px-4">
           <div className="w-full max-w-md rounded-2xl bg-space-900 border border-white/15 p-5">
-            <div className="text-center text-sm font-bold text-amber-200 mb-2">🚦 체크포인트 문제!</div>
+            <div className="text-center text-sm font-bold text-amber-200 mb-2">📝 문제 카드!</div>
             <QuickAnswer key={quiz.id} problem={quiz} onResult={onQuizResult} />
           </div>
         </div>

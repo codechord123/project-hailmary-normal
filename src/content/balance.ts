@@ -22,10 +22,10 @@ export const BALANCE = {
     qRampPerCorrect: 0.4, // 정답당 단축 폭
   },
   runner: {
-    obstacleSpeed: 2.6, // 장애물 낙하 속도(px/frame)
-    spawnMs: 850, // 장애물 생성 간격(ms)
-    dodgePerCheckpoint: 4, // 체크포인트(문제)까지 피해야 할 장애물 수
-    checkpoints: 6, // 클리어에 필요한 체크포인트(문제) 수
+    obstacleSpeed: 2.4, // 장애물 낙하 시작 속도(px/frame)
+    obstacleSpawnMs: 900, // 장애물 생성 간격(ms)
+    cardSpawnMs: 4200, // 문제 카드 생성 간격(ms)
+    problemsToClear: 6, // 클리어에 필요한 정답 수
   },
   timed: {
     minBudgetSec: 30, // 시간제 게임 최소 제한시간
