@@ -45,6 +45,7 @@ export const chapter5: ChapterDef = {
       prompt: '남아프리카 공화국에서 흑인 차별(아파르트헤이트)에 맞서 싸운 인물은?',
       choices: ['넬슨 만델라', '마틴 루서 킹', '간디', '링컨'],
       correctIndexes: [0], multiple: false,
+      hint: '아파르트헤이트는 남아프리카 공화국에서 흑인을 차별하던 정책이에요.',
     },
     {
       id: 'c3-18', kind: 'mcq', difficulty: 2, source: '교육과정',
@@ -69,6 +70,7 @@ export const chapter5: ChapterDef = {
       prompt: '옛날에 백성의 억울함을 풀어 주기 위한 제도가 "아닌" 것은?',
       choices: ['신문고', '상소', '격쟁', '선거'],
       correctIndexes: [3], multiple: false,
+      hint: '선거는 오늘날 대표를 뽑는 방법이에요. 신문고·상소·격쟁은 옛날에 억울함을 알리던 제도예요.',
     },
     {
       id: 'c3-12', kind: 'ox', difficulty: 1, source: '교육과정',

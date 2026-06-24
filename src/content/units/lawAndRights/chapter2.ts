@@ -84,9 +84,9 @@ export const chapter2: ChapterDef = {
       correctIndexes: [0], multiple: false,
     },
     {
-      id: 'c2-13a', kind: 'ox', difficulty: 3, source: '1회 13-(1)번',
-      statement: '"범죄나 사고를 예방한다"는 것은 개인의 권리 보호와 직접 관련된 법의 역할이다.',
-      answer: false, hint: '예방은 사회 질서 유지에 가까워요.',
+      id: 'c2-13a', kind: 'ox', difficulty: 2, source: '1회 13-(1)번',
+      statement: '"범죄나 사고를 미리 예방한다"는 것은 사회의 질서를 지키는 법의 역할이다.',
+      answer: true, hint: '미리 막아 사회를 안전하고 질서 있게 지키는 역할이에요.',
     },
     {
       id: 'c2-13b', kind: 'ox', difficulty: 2, source: '1회 13-(2)번',
