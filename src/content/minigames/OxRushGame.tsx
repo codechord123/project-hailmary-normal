@@ -55,9 +55,10 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
   const [shakeN, setShakeN] = useState(0)
   const juice = useGameJuice()
 
-  // 문항이 바뀌면 제한시간 재설정 (진행할수록 단축)
+  // 문항이 바뀌면 제한시간 재설정 (진행할수록 단축, 보너스는 더 빡빡하게)
   useEffect(() => {
-    setQTime(qDurFor(correctCount))
+    const bonus = idx > 0 && idx % 5 === 0
+    setQTime(bonus ? Math.max(2, qDurFor(correctCount) - 3) : qDurFor(correctCount))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [idx])
 
@@ -87,6 +88,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
 
   const problem = pool[idx % pool.length]
   const goal = Math.min(GOAL, Math.max(5, pool.length))
+  const isBonus = idx > 0 && idx % 5 === 0 // 5문항마다 보너스 라운드(3배·시간 단축)
 
   const answer = (v: boolean) => {
     if (status !== 'play') return
@@ -99,8 +101,8 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
       const c = combo + 1
       setCombo(c)
       setBestCombo((b) => Math.max(b, c))
-      setScore((s) => s + 10 + c * 2)
-      juice.correct(c, { x: 0.5 })
+      setScore((s) => s + (10 + c * 2) * (isBonus ? 3 : 1))
+      juice.correct(isBonus ? c + 4 : c, { x: 0.5 })
       const cc = correctCount + 1
       setCorrectCount(cc)
       if (cc >= goal) { setStatus('clear'); sfx.clear() }
@@ -168,11 +170,22 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
         ]} />
       </div>
 
+      {isBonus && (
+        <motion.div
+          key={`b${idx}`}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: [1.1, 1], opacity: 1 }}
+          className="text-center text-base font-black text-yellow-300 drop-shadow-[0_0_10px_rgba(253,224,71,0.7)]"
+        >
+          ⭐ 보너스 문제! 점수 3배 (시간 짧음)
+        </motion.div>
+      )}
+
       {/* 문항 제한시간 바 */}
       <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
         <div
-          className={`h-full transition-all duration-1000 ease-linear ${qTime <= 2 ? 'bg-red-500' : 'bg-space-accent'}`}
-          style={{ width: `${(qTime / qDurFor(correctCount)) * 100}%` }}
+          className={`h-full transition-all duration-1000 ease-linear ${qTime <= 2 ? 'bg-red-500' : isBonus ? 'bg-yellow-400' : 'bg-space-accent'}`}
+          style={{ width: `${(qTime / Math.max(1, isBonus ? qDurFor(correctCount) - 3 : qDurFor(correctCount))) * 100}%` }}
         />
       </div>
 
@@ -180,7 +193,9 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
         key={idx}
         initial={{ y: -16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="rounded-2xl bg-white/5 border border-white/10 p-6 min-h-[7rem] flex items-center justify-center text-center"
+        className={`rounded-2xl p-6 min-h-[7rem] flex items-center justify-center text-center border ${
+          isBonus ? 'bg-yellow-400/10 border-yellow-300/50 shadow-[0_0_20px_rgba(253,224,71,0.3)]' : 'bg-white/5 border-white/10'
+        }`}
       >
         <p className="text-lg font-bold text-white leading-relaxed">{problem.statement}</p>
       </motion.div>
