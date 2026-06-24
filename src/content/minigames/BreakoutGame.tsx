@@ -34,10 +34,11 @@ const BRICK_H = 14
 const ITEM_VY = 2.4
 const MAX_BALLS = 6
 const TOTAL_LEVELS = 3
+const QUIZ_EVERY = 5 // 벽돌 5개 깰 때마다 문제 출제
 const START_HEARTS = BALANCE.hearts
 
 const ITEM_EMOJI: Record<ItemType, string> = { quiz: '📝', points: '✨', expand: '⬌', slow: '🐢', life: '❤️', multi: '➕', fire: '🔥', bomb: '💣' }
-const ITEM_BAG: ItemType[] = ['quiz', 'quiz', 'quiz', 'points', 'points', 'expand', 'slow', 'life', 'multi', 'multi', 'fire', 'fire', 'bomb', 'bomb']
+const ITEM_BAG: ItemType[] = ['quiz', 'points', 'points', 'expand', 'expand', 'slow', 'slow', 'life', 'multi', 'multi', 'fire', 'fire', 'bomb', 'bomb']
 
 const BRICK: Record<BrickType, { hp: number; pts: number; emoji?: string }> = {
   normal: { hp: 1, pts: 10 },
@@ -91,6 +92,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
   const items = useRef<Item[]>([])
   const floats = useRef<FloatText[]>([])
   const comboRef = useRef(0)
+  const destroyedRef = useRef(0) // 마지막 문제 이후 깬 벽돌 수
   const levelRef = useRef(1)
   const prevPattern = useRef(-1)
   const pausedRef = useRef(false)
@@ -116,10 +118,10 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
 
   const pickType = (row: number): BrickType => {
     const lv = levelRef.current
-    if (row < 2) return Math.random() < 0.2 + lv * 0.08 ? 'steel' : 'tough'
+    if (row < 2) return Math.random() < 0.32 + lv * 0.06 ? 'steel' : 'tough'
     const r = Math.random()
-    if (r < 0.08 + lv * 0.03) return 'explosive'
-    if (r < 0.14 + lv * 0.04) return 'steel'
+    if (r < 0.16 + lv * 0.04) return 'explosive'
+    if (r < 0.28 + lv * 0.05) return 'steel'
     return 'normal'
   }
   const initBricks = () => {
@@ -168,6 +170,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
       fx.burst(cx, cy, { count: chained ? 9 : 14, color: [`hsl(${br.hue} 90% 65%)`, `hsl(${br.hue} 90% 82%)`, '#fff'], speed: 3.4, gravity: 0.16, size: 3 })
       if (!chained) {
         comboRef.current++
+        destroyedRef.current++
         const m = mult()
         const gain = BRICK[br.type].pts * m
         setScore((s) => s + gain)
@@ -200,7 +203,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
 
     const advanceLevel = () => {
       if (levelRef.current < TOTAL_LEVELS) {
-        levelRef.current++; setLevel(levelRef.current)
+        levelRef.current++; setLevel(levelRef.current); destroyedRef.current = 0
         initBricks(); spawnBall(); items.current = []
         pwRef.current = PW; expandFrames.current = 0; slowFrames.current = 0; fireFrames.current = 0; slowMul.current = 1
         setBuffs({ expand: false, slow: false, fire: false })
@@ -269,6 +272,14 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         if (runningRef.current && bricksLeftRef.current <= 0) advanceLevel()
         else if (runningRef.current && balls.current.length === 0) loseLife()
 
+        // 일정 수의 벽돌을 깰 때마다 문제 출제(아이템과 별개로 보장)
+        if (runningRef.current && !pausedRef.current && destroyedRef.current >= QUIZ_EVERY) {
+          destroyedRef.current = 0
+          pausedRef.current = true
+          setQuiz(nextQuiz())
+          sfx.tick?.()
+        }
+
         const half2 = pwRef.current / 2
         for (let i = items.current.length - 1; i >= 0; i--) {
           const it = items.current[i]
@@ -308,7 +319,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         fx.begin(ctx)
         for (const br of bricks.current) {
           if (br.hp <= 0) continue
-          const lum = br.type === 'steel' ? 36 : br.hp >= 2 ? 52 : 62
+          const lum = br.type === 'steel' ? 30 + (3 - br.hp) * 9 : br.hp >= 2 ? 52 : 62
           const baseHue = br.type === 'explosive' ? 24 : br.type === 'steel' ? 210 : br.hue
           roundRect(ctx, br.x, br.y, br.w, BRICK_H, 3)
           const g = ctx.createLinearGradient(br.x, br.y, br.x, br.y + BRICK_H)
@@ -319,7 +330,12 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
           ctx.fill(); ctx.shadowBlur = 0
           ctx.fillStyle = 'rgba(255,255,255,0.3)'; roundRect(ctx, br.x + 2, br.y + 1.5, br.w - 4, 2.5, 1.5); ctx.fill()
           if (br.hp >= 2) { ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1.2; roundRect(ctx, br.x, br.y, br.w, BRICK_H, 3); ctx.stroke() }
-          if (BRICK[br.type].emoji) { ctx.font = '10px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(BRICK[br.type].emoji!, br.x + br.w / 2, br.y + BRICK_H / 2) }
+          if (BRICK[br.type].emoji) {
+            ctx.font = '12px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+            if (br.type === 'explosive') { ctx.shadowColor = '#f97316'; ctx.shadowBlur = 8 }
+            ctx.fillText(BRICK[br.type].emoji!, br.x + br.w / 2, br.y + BRICK_H / 2)
+            ctx.shadowBlur = 0
+          }
           if (br.flash > 0) { ctx.fillStyle = `rgba(255,255,255,${br.flash / 12})`; roundRect(ctx, br.x, br.y, br.w, BRICK_H, 3); ctx.fill() }
         }
         const fireOn = fireFrames.current > 0
@@ -370,7 +386,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
   const starCount = starsFromHearts(lives.hearts, lives.startHearts)
 
   const restart = () => {
-    levelRef.current = 1; setLevel(1); prevPattern.current = -1
+    levelRef.current = 1; setLevel(1); prevPattern.current = -1; destroyedRef.current = 0
     initBricks(); spawnBall(); items.current = []; floats.current = []; comboRef.current = 0
     quizQueue.current = shuffle(quizPool)
     pwRef.current = PW; expandFrames.current = 0; slowFrames.current = 0; fireFrames.current = 0; slowMul.current = 1
