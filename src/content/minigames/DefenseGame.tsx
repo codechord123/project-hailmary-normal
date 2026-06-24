@@ -3,9 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { judgeContent } from '@/content/judge'
 import { sfx } from '@/lib/sfx'
-import { ConfettiBurst } from '@/components/ConfettiBurst'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
+import { GameResult } from '@/content/components/GameResult'
 import { starsFromHearts } from '@/content/score'
+import { BALANCE } from '@/content/balance'
 
 interface Props {
   problems: ContentProblem[]
@@ -26,8 +27,8 @@ interface Threat {
 }
 
 const LANES = 3
-const LANE_ADVANCE_SEC = 16 // 좌→우 베이스까지 도달 시간 (읽을 시간 확보)
-const START_HEARTS = 3
+const LANE_ADVANCE_SEC = BALANCE.defense.laneAdvanceSec // 좌→우 베이스까지 도달 시간
+const START_HEARTS = BALANCE.hearts
 const ENEMIES = ['🌀', '🔥', '⚡', '🌪️', '💢', '🌊']
 
 const shuffle = <T,>(arr: T[]): T[] => {
@@ -73,7 +74,10 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
   const juice = useGameJuice()
   // 처치가 쌓일수록 점진 가속 (하한 9초, 초반 2회는 가속 없음)
-  const advanceSec = Math.max(9, LANE_ADVANCE_SEC - Math.max(0, killed - 2) * 0.6)
+  const advanceSec = Math.max(
+    BALANCE.defense.advanceFloorSec,
+    LANE_ADVANCE_SEC - Math.max(0, killed - BALANCE.defense.accelGrace) * BALANCE.defense.accelPerKill,
+  )
 
   // 첫 스폰
   useEffect(() => {
@@ -181,21 +185,20 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
   // ── 결과 화면 ──
   if (status === 'clear') {
     return (
-      <>
-        <ConfettiBurst show />
-        <Result
-          emoji="🎉"
-          title="도시를 지켜냈어요!"
-          lines={[`처치 ${killed}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-          primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(hearts, START_HEARTS) }) }}
-          secondary={{ label: '다시 하기', onClick: restart }}
-        />
-      </>
+      <GameResult
+        emoji="🎉"
+        title="도시를 지켜냈어요!"
+        confetti
+        stars={starsFromHearts(hearts, START_HEARTS)}
+        lines={[`처치 ${killed}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
+        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(hearts, START_HEARTS) }) }}
+        secondary={{ label: '다시 하기', onClick: restart }}
+      />
     )
   }
   if (status === 'over') {
     return (
-      <Result
+      <GameResult
         emoji="🛑"
         title="도시가 혼란에 빠졌어요…"
         lines={[`처치 ${killed} / ${goal}`, '다시 도전해 볼까요?']}
@@ -373,33 +376,5 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
         )}
       </div>
     </motion.div>
-  )
-}
-
-function Result({
-  emoji, title, lines, primary, secondary,
-}: {
-  emoji: string
-  title: string
-  lines: string[]
-  primary: { label: string; onClick: () => void }
-  secondary: { label: string; onClick: () => void }
-}) {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
-      <div className="text-6xl">{emoji}</div>
-      <h1 className="text-2xl font-black text-white">{title}</h1>
-      <div className="text-white/70 flex flex-col gap-1">
-        {lines.map((l, i) => <span key={i}>{l}</span>)}
-      </div>
-      <div className="flex gap-3">
-        <button onClick={primary.onClick} className="px-6 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition">
-          {primary.label}
-        </button>
-        <button onClick={secondary.onClick} className="px-6 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 transition">
-          {secondary.label}
-        </button>
-      </div>
-    </div>
   )
 }

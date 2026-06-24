@@ -3,9 +3,10 @@ import { motion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { judgeContent } from '@/content/judge'
 import { sfx } from '@/lib/sfx'
-import { ConfettiBurst } from '@/components/ConfettiBurst'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
+import { GameResult } from '@/content/components/GameResult'
 import { starsFromHearts } from '@/content/score'
+import { BALANCE } from '@/content/balance'
 
 interface Props {
   problems: ContentProblem[]
@@ -21,8 +22,8 @@ interface Props {
   onAnswer?: (problemId: string, correct: boolean) => void
 }
 
-const START_HEARTS = 3
-const COUNTER_PERIOD = 14 // 보스 반격 주기(초) — 답하면 리셋
+const START_HEARTS = BALANCE.hearts
+const COUNTER_PERIOD = BALANCE.boss.counterPeriodSec // 보스 반격 주기(초) — 답하면 리셋
 
 const shuffle = <T,>(arr: T[]): T[] => {
   const a = [...arr]
@@ -40,7 +41,7 @@ const shuffle = <T,>(arr: T[]): T[] => {
  */
 export function BossGame({
   problems, title, intro, bossName = '편견 빌런', bossEmoji = '👾',
-  hitsToKill = 4, onClear, onExit, onAnswer,
+  hitsToKill = BALANCE.boss.hitsToKillDefault, onClear, onExit, onAnswer,
 }: Props) {
   const queueRef = useRef<ContentProblem[]>([])
   const nextProblem = useCallback((): ContentProblem => {
@@ -141,18 +142,16 @@ export function BossGame({
 
   if (status === 'clear') {
     return (
-      <>
-        <ConfettiBurst show />
-        <Result emoji="🎉" title={`${bossName}을(를) 무찔렀어요!`}
-          lines={[`최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-          primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(hearts, START_HEARTS) }) }}
-          secondary={{ label: '다시 하기', onClick: restart }} />
-      </>
+      <GameResult emoji="🎉" title={`${bossName}을(를) 무찔렀어요!`} confetti
+        stars={starsFromHearts(hearts, START_HEARTS)}
+        lines={[`최고 콤보 ${bestCombo}`, `점수 ${score}`]}
+        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(hearts, START_HEARTS) }) }}
+        secondary={{ label: '다시 하기', onClick: restart }} />
     )
   }
   if (status === 'over') {
     return (
-      <Result emoji="🛑" title="이번엔 빌런에게 졌어요…"
+      <GameResult emoji="🛑" title="이번엔 빌런에게 졌어요…"
         lines={['인권을 다시 떠올리고', '재도전해 볼까요?']}
         primary={{ label: '다시 도전', onClick: restart }}
         secondary={{ label: '나가기', onClick: onExit }} />
@@ -273,28 +272,6 @@ export function BossGame({
       {intro && combo === 0 && score === 0 && (
         <p className="mt-3 text-xs text-white/50 text-center leading-relaxed">{intro}</p>
       )}
-    </div>
-  )
-}
-
-function Result({
-  emoji, title, lines, primary, secondary,
-}: {
-  emoji: string; title: string; lines: string[]
-  primary: { label: string; onClick: () => void }
-  secondary: { label: string; onClick: () => void }
-}) {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
-      <div className="text-6xl">{emoji}</div>
-      <h1 className="text-2xl font-black text-white">{title}</h1>
-      <div className="text-white/70 flex flex-col gap-1">
-        {lines.map((l, i) => <span key={i}>{l}</span>)}
-      </div>
-      <div className="flex gap-3">
-        <button onClick={primary.onClick} className="px-6 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition">{primary.label}</button>
-        <button onClick={secondary.onClick} className="px-6 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 transition">{secondary.label}</button>
-      </div>
     </div>
   )
 }

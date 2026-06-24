@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
-import { ConfettiBurst } from '@/components/ConfettiBurst'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
+import { GameResult } from '@/content/components/GameResult'
 import { starsFromMistakes } from '@/content/score'
+import { BALANCE } from '@/content/balance'
 
 interface Props {
   problems: ContentProblem[]
@@ -41,7 +42,10 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
     () => problems.filter((p): p is Extract<ContentProblem, { kind: 'matching' }> => p.kind === 'matching'),
     [problems],
   )
-  const budget = Math.max(30, rounds.reduce((s, r) => s + r.pairs.length, 0) * 6)
+  const budget = Math.max(
+    BALANCE.timed.minBudgetSec,
+    rounds.reduce((s, r) => s + r.pairs.length, 0) * BALANCE.timed.sortingSecPerItem,
+  )
 
   const [roundIdx, setRoundIdx] = useState(0)
   const round = rounds[roundIdx]
@@ -93,31 +97,19 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
 
   if (status === 'clear') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
-        <ConfettiBurst show />
-        <div className="text-6xl">🗂️</div>
-        <h1 className="text-2xl font-black text-white">분류 완료!</h1>
-        <div className="text-amber-300 text-2xl">{'★'.repeat(stars)}<span className="text-white/20">{'★'.repeat(3 - stars)}</span></div>
-        <div className="text-white/70">실수 {mistakes}번 · 남은 시간 {timeLeft}초</div>
-        <div className="flex gap-3">
-          <button onClick={() => onClear({ mistakes, stars })} className="px-6 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition">완료</button>
-          <button onClick={restart} className="px-6 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 transition">다시 하기</button>
-        </div>
-      </div>
+      <GameResult emoji="🗂️" title="분류 완료!" confetti stars={stars}
+        lines={[`실수 ${mistakes}번 · 남은 시간 ${timeLeft}초`]}
+        primary={{ label: '완료', onClick: () => onClear({ mistakes, stars }) }}
+        secondary={{ label: '다시 하기', onClick: restart }} />
     )
   }
 
   if (status === 'over') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
-        <div className="text-6xl">⏰</div>
-        <h1 className="text-2xl font-black text-white">시간이 다 됐어요!</h1>
-        <div className="text-white/70">다시 도전해 볼까요?</div>
-        <div className="flex gap-3">
-          <button onClick={restart} className="px-6 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition">다시 도전</button>
-          <button onClick={onExit} className="px-6 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 transition">나가기</button>
-        </div>
-      </div>
+      <GameResult emoji="⏰" title="시간이 다 됐어요!"
+        lines={['다시 도전해 볼까요?']}
+        primary={{ label: '다시 도전', onClick: restart }}
+        secondary={{ label: '나가기', onClick: onExit }} />
     )
   }
 

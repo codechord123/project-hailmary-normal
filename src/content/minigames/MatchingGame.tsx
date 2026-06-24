@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
-import { ConfettiBurst } from '@/components/ConfettiBurst'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
+import { GameResult } from '@/content/components/GameResult'
 import { starsFromMistakes } from '@/content/score'
+import { BALANCE } from '@/content/balance'
 
 interface Props {
   problems: ContentProblem[]
@@ -44,7 +45,7 @@ export function MatchingGame({ problems, title, intro, onClear, onExit }: Props)
   }, [problems])
 
   const total = lefts.length
-  const budget = Math.max(30, total * 7)
+  const budget = Math.max(BALANCE.timed.minBudgetSec, total * BALANCE.timed.matchingSecPerPair)
 
   const [matched, setMatched] = useState<Set<number>>(new Set())
   const [selected, setSelected] = useState<Selection>(null)
@@ -110,34 +111,19 @@ export function MatchingGame({ problems, title, intro, onClear, onExit }: Props)
 
   if (status === 'clear') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
-        <ConfettiBurst show />
-        <div className="text-6xl">📜</div>
-        <h1 className="text-2xl font-black text-white">법전을 복구했어요!</h1>
-        <div className="text-amber-300 text-2xl">{'★'.repeat(stars)}<span className="text-white/20">{'★'.repeat(3 - stars)}</span></div>
-        <div className="text-white/70 flex flex-col gap-1">
-          <span>짝 {total}개 완성 · 실수 {mistakes}번</span>
-          <span>남은 시간 {timeLeft}초 · 점수 {score}</span>
-        </div>
-        <div className="flex gap-3">
-          <button onClick={() => onClear({ mistakes, score, stars })} className="px-6 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition">완료</button>
-          <button onClick={restart} className="px-6 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 transition">다시 하기</button>
-        </div>
-      </div>
+      <GameResult emoji="📜" title="법전을 복구했어요!" confetti stars={stars}
+        lines={[`짝 ${total}개 완성 · 실수 ${mistakes}번`, `남은 시간 ${timeLeft}초 · 점수 ${score}`]}
+        primary={{ label: '완료', onClick: () => onClear({ mistakes, score, stars }) }}
+        secondary={{ label: '다시 하기', onClick: restart }} />
     )
   }
 
   if (status === 'over') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
-        <div className="text-6xl">⏰</div>
-        <h1 className="text-2xl font-black text-white">시간이 다 됐어요!</h1>
-        <div className="text-white/70">{matched.size}/{total} 짝 완성 · 다시 도전해 볼까요?</div>
-        <div className="flex gap-3">
-          <button onClick={restart} className="px-6 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition">다시 도전</button>
-          <button onClick={onExit} className="px-6 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 transition">나가기</button>
-        </div>
-      </div>
+      <GameResult emoji="⏰" title="시간이 다 됐어요!"
+        lines={[`${matched.size}/${total} 짝 완성`, '다시 도전해 볼까요?']}
+        primary={{ label: '다시 도전', onClick: restart }}
+        secondary={{ label: '나가기', onClick: onExit }} />
     )
   }
 

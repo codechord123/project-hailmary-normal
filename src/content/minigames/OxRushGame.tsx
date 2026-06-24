@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
-import { ConfettiBurst } from '@/components/ConfettiBurst'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
+import { GameResult } from '@/content/components/GameResult'
 import { starsFromHearts } from '@/content/score'
+import { BALANCE } from '@/content/balance'
 
 interface Props {
   problems: ContentProblem[]
@@ -15,8 +16,12 @@ interface Props {
   onAnswer?: (problemId: string, correct: boolean) => void
 }
 
-const START_HEARTS = 3
-const GOAL = 10 // 정답 10개면 클리어
+const START_HEARTS = BALANCE.hearts
+const GOAL = BALANCE.oxrush.goal // 정답 N개면 클리어
+const Q_BASE = BALANCE.oxrush.qBaseSec // 문항 기본 제한시간(초)
+const Q_MIN = BALANCE.oxrush.qMinSec // 문항 최소 제한시간(초)
+const qDurFor = (correctCount: number) =>
+  Math.max(Q_MIN, Q_BASE - Math.floor(correctCount * BALANCE.oxrush.qRampPerCorrect))
 
 const shuffle = <T,>(arr: T[]): T[] => {
   const a = [...arr]
@@ -44,7 +49,28 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
   const [score, setScore] = useState(0)
   const [flash, setFlash] = useState<'ok' | 'no' | null>(null)
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
+  const [qTime, setQTime] = useState(Q_BASE)
   const juice = useGameJuice()
+
+  // 문항이 바뀌면 제한시간 재설정 (진행할수록 단축)
+  useEffect(() => {
+    setQTime(qDurFor(correctCount))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [idx])
+
+  // 문항 카운트다운 — 0이면 콤보만 리셋하고 다음 문제(하트 차감 없음, 소프트락 방지)
+  useEffect(() => {
+    if (status !== 'play') return
+    if (qTime <= 0) {
+      setCombo(0)
+      setFlash('no')
+      setTimeout(() => setFlash(null), 160)
+      setIdx((i) => i + 1)
+      return
+    }
+    const id = setTimeout(() => setQTime((t) => t - 1), 1000)
+    return () => clearTimeout(id)
+  }, [qTime, status])
 
   if (pool.length === 0) {
     return (
@@ -92,18 +118,16 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
 
   if (status === 'clear') {
     return (
-      <>
-        <ConfettiBurst show />
-        <Result emoji="⚡" title="번개처럼 통과!"
-          lines={[`정답 ${correctCount}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-          primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(hearts, START_HEARTS) }) }}
-          secondary={{ label: '다시 하기', onClick: restart }} />
-      </>
+      <GameResult emoji="⚡" title="번개처럼 통과!" confetti
+        stars={starsFromHearts(hearts, START_HEARTS)}
+        lines={[`정답 ${correctCount}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
+        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(hearts, START_HEARTS) }) }}
+        secondary={{ label: '다시 하기', onClick: restart }} />
     )
   }
   if (status === 'over') {
     return (
-      <Result emoji="🛑" title="앗, 하트를 다 썼어요"
+      <GameResult emoji="🛑" title="앗, 하트를 다 썼어요"
         lines={[`정답 ${correctCount} / ${goal}`, '다시 도전해 볼까요?']}
         primary={{ label: '다시 도전', onClick: restart }}
         secondary={{ label: '나가기', onClick: onExit }} />
@@ -126,6 +150,14 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
       <div className="text-center text-sm font-bold text-indigo-200">⚡ {title}</div>
       <div className="text-center text-xs text-white/55">정답 {correctCount} / {goal} · 점수 {score}</div>
 
+      {/* 문항 제한시간 바 */}
+      <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+        <div
+          className={`h-full transition-all duration-1000 ease-linear ${qTime <= 2 ? 'bg-red-500' : 'bg-space-accent'}`}
+          style={{ width: `${(qTime / qDurFor(correctCount)) * 100}%` }}
+        />
+      </div>
+
       <motion.div
         key={idx}
         initial={{ y: -16, opacity: 0 }}
@@ -143,26 +175,6 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
       {intro && correctCount === 0 && (
         <p className="text-center text-xs text-white/45 leading-relaxed">{intro}</p>
       )}
-    </div>
-  )
-}
-
-function Result({
-  emoji, title, lines, primary, secondary,
-}: {
-  emoji: string; title: string; lines: string[]
-  primary: { label: string; onClick: () => void }
-  secondary: { label: string; onClick: () => void }
-}) {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
-      <div className="text-6xl">{emoji}</div>
-      <h1 className="text-2xl font-black text-white">{title}</h1>
-      <div className="text-white/70 flex flex-col gap-1">{lines.map((l, i) => <span key={i}>{l}</span>)}</div>
-      <div className="flex gap-3">
-        <button onClick={primary.onClick} className="px-6 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition">{primary.label}</button>
-        <button onClick={secondary.onClick} className="px-6 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 transition">{secondary.label}</button>
-      </div>
     </div>
   )
 }
