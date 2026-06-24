@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { ConfettiBurst } from '@/components/ConfettiBurst'
+import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 
 interface Props {
   problems: ContentProblem[]
@@ -42,6 +43,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
   const [score, setScore] = useState(0)
   const [flash, setFlash] = useState<'ok' | 'no' | null>(null)
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
+  const juice = useGameJuice()
 
   if (pool.length === 0) {
     return (
@@ -67,6 +69,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
       setCombo(c)
       setBestCombo((b) => Math.max(b, c))
       setScore((s) => s + 10 + c * 2)
+      juice.correct(c, { x: 0.5 })
       const cc = correctCount + 1
       setCorrectCount(cc)
       if (cc >= goal) { setStatus('clear'); sfx.clear() }
@@ -107,9 +110,10 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
   }
 
   return (
-    <div className={`min-h-screen px-4 py-6 max-w-xl mx-auto flex flex-col gap-5 transition-colors ${
+    <div className={`min-h-screen px-4 py-6 max-w-xl mx-auto flex flex-col gap-5 transition-colors relative ${
       flash === 'ok' ? 'bg-emerald-500/5' : flash === 'no' ? 'bg-red-500/5' : ''
     }`}>
+      <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} />
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
         <div className="text-sm flex gap-3 items-center">

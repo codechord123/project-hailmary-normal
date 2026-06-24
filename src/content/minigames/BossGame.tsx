@@ -4,6 +4,7 @@ import type { ContentProblem } from '@/content/types'
 import { judgeContent } from '@/content/judge'
 import { sfx } from '@/lib/sfx'
 import { ConfettiBurst } from '@/components/ConfettiBurst'
+import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 
 interface Props {
   problems: ContentProblem[]
@@ -59,6 +60,7 @@ export function BossGame({
   const [feedback, setFeedback] = useState<string | null>(null)
   const [mcqPick, setMcqPick] = useState<number[]>([])
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
+  const juice = useGameJuice()
 
   const advance = () => {
     setMcqPick([])
@@ -74,6 +76,7 @@ export function BossGame({
       setCombo(newCombo)
       setBestCombo((b) => Math.max(b, newCombo))
       setScore((s) => s + 100 + newCombo * 20)
+      juice.correct(newCombo, { x: 0.5, amount: damage })
       setReact('hit')
       setFeedback('💥 명중! 빌런에게 데미지!')
       setTimeout(() => setReact('idle'), 400)
@@ -132,7 +135,8 @@ export function BossGame({
   }
 
   return (
-    <div className="min-h-screen px-4 sm:px-6 py-4 max-w-2xl mx-auto flex flex-col">
+    <div className="min-h-screen px-4 sm:px-6 py-4 max-w-2xl mx-auto flex flex-col relative">
+      <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} />
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
         <div className="text-sm text-rose-300">
