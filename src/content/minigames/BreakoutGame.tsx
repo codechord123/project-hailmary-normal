@@ -197,7 +197,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     )
   }
 
-  const stars = starsFromHearts(lives.hearts, START_HEARTS)
+  const stars = starsFromHearts(lives.hearts, lives.startHearts)
 
   const restart = () => {
     initBricks(); resetBall(); items.current = []; quizQueue.current = shuffle(quizPool)

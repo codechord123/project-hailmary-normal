@@ -5,10 +5,14 @@ const MAX_HEARTS = 5
 
 /**
  * 목숨 + 보호막 공용 훅.
+ * 시작 목숨 = base + 성장 스탯(체력)에서 파생된 보너스 하트(과목 중립).
  * lose(): 보호막이 있으면 소모만 하고 목숨 유지, 없으면 −1. 죽으면 true 반환.
  * arm(): 보호막 장착. addLife(): 목숨 +1(최대 5). reset(): 초기화.
  */
-export function useLives(start: number) {
+export function useLives(base: number) {
+  // 마운트 시점의 성장 보너스를 한 번 반영 (레벨이 높을수록 하트 ↑)
+  const bonus = useGameStore.getState().combatMods().bonusHearts
+  const start = Math.min(MAX_HEARTS, base + bonus)
   const heartsRef = useRef(start)
   const [hearts, setHeartsState] = useState(start)
   const shieldRef = useRef(false)
@@ -25,7 +29,7 @@ export function useLives(start: number) {
   const addLife = () => set(Math.min(MAX_HEARTS, heartsRef.current + 1))
   const reset = () => { shieldRef.current = false; setShielded(false); set(start) }
 
-  return { hearts, shielded, lose, arm, addLife, reset, MAX_HEARTS }
+  return { hearts, shielded, lose, arm, addLife, reset, MAX_HEARTS, startHearts: start }
 }
 
 export interface ShopItem {

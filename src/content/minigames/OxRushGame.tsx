@@ -116,9 +116,9 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
   if (status === 'clear') {
     return (
       <GameResult emoji="⚡" title="번개처럼 통과!" confetti
-        stars={starsFromHearts(lives.hearts, START_HEARTS)}
+        stars={starsFromHearts(lives.hearts, lives.startHearts)}
         lines={[`정답 ${correctCount}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(lives.hearts, START_HEARTS) }) }}
+        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(lives.hearts, lives.startHearts) }) }}
         secondary={{ label: '다시 하기', onClick: restart }} />
     )
   }

@@ -151,9 +151,9 @@ export function BossGame({
   if (status === 'clear') {
     return (
       <GameResult emoji="🎉" title={`${bossName}을(를) 무찔렀어요!`} confetti
-        stars={starsFromHearts(lives.hearts, START_HEARTS)}
+        stars={starsFromHearts(lives.hearts, lives.startHearts)}
         lines={[`최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(lives.hearts, START_HEARTS) }) }}
+        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(lives.hearts, lives.startHearts) }) }}
         secondary={{ label: '다시 하기', onClick: restart }} />
     )
   }

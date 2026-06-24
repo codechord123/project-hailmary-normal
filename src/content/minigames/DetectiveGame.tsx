@@ -74,7 +74,7 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
   }
 
   const goal = Math.min(GOAL, Math.max(3, pool.length))
-  const stars = starsFromHearts(lives.hearts, START_HEARTS)
+  const stars = starsFromHearts(lives.hearts, lives.startHearts)
   const answerIdx = problem.correctIndexes[0]
 
   const advance = () => {

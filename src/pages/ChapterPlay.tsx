@@ -58,9 +58,9 @@ export function ChapterPlay() {
     recordAnswer(unit.id, problemId, correct) // 단원별 오답 노트
     awardAnswer(correct) // 공유 XP·에너지
   }
-  const onClear = (result?: { stars?: number }) => {
+  const onClear = (result?: { stars?: number; bestCombo?: number }) => {
     recordClear(unit.id, chapter.id, result?.stars ?? 3, unit.chapters.length) // 성과 별점(1~3)
-    awardClear() // 공유 XP·에너지
+    awardClear({ stars: result?.stars, bestCombo: result?.bestCombo }) // 콤보·별점 비례 보상
     backToUnit()
   }
 

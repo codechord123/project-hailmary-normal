@@ -70,6 +70,20 @@ interface GameState {
   reset: () => void
   maxOxygen: () => number
   baseTimePerProblem: () => number
+  /** 과목 중립 성장 효과 — 모든 콘텐츠 미니게임에 공통 적용 */
+  combatMods: () => CombatMods
+}
+
+/** 스탯에서 파생되는, 과목과 무관한 게임 효과 */
+export interface CombatMods {
+  /** 시작 목숨(하트) 보너스 */
+  bonusHearts: number
+  /** 시간제 게임 추가 시간(초) */
+  timeBonusSec: number
+  /** 무료 힌트/리롤 횟수 */
+  hintCharges: number
+  /** 보상(XP·에너지) 보너스 발생 확률 0~0.5 */
+  bonusChance: number
 }
 
 const INITIAL_STATS: Stats = { lung: 0, reflex: 0, intuition: 0, luck: 0 }
@@ -120,6 +134,15 @@ export const useGameStore = create<GameState>()(
       ...INITIAL,
       maxOxygen: () => 100 + get().stats.lung * 10,
       baseTimePerProblem: () => 50 + get().stats.reflex * 4,
+      combatMods: () => {
+        const st = get().stats
+        return {
+          bonusHearts: Math.min(2, Math.floor(st.lung / 3)), // 체력 3pt당 +1 하트(최대 +2)
+          timeBonusSec: st.reflex * 2, // 반응속도 1pt당 +2초
+          hintCharges: Math.min(3, st.intuition), // 직감 1pt당 힌트 +1(최대 3)
+          bonusChance: Math.min(0.5, st.luck * 0.05), // 행운 1pt당 보너스 확률 +5%(최대 50%)
+        }
+      },
       addOxygen: (delta) =>
         set((s) => ({
           oxygen: Math.max(0, Math.min(s.maxOxygen(), s.oxygen + delta)),

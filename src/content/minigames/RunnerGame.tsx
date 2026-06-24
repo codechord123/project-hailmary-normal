@@ -172,7 +172,7 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
     )
   }
 
-  const stars = starsFromHearts(lives.hearts, START_HEARTS)
+  const stars = starsFromHearts(lives.hearts, lives.startHearts)
 
   const restart = () => {
     ents.current = []; carX.current = W / 2; invulnRef.current = 0
