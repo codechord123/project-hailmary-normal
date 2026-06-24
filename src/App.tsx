@@ -123,7 +123,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <div
-        className={`min-h-screen bg-gradient-to-b from-space-900 via-space-800 to-space-900 text-white ${
+        className={`min-h-screen overflow-x-hidden bg-gradient-to-b from-space-900 via-space-800 to-space-900 text-white ${
           presentationMode ? 'text-lg sm:text-xl' : ''
         }`}
       >
