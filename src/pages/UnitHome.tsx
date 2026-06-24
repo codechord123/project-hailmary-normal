@@ -8,6 +8,7 @@ import { useGameStore } from '@/store/gameStore'
 import { computeLevelInfo } from '@/lib/leveling'
 
 const MECHANIC: Record<string, { label: string; icon: string }> = {
+  runner: { label: '퀴즈 러너', icon: '🏃' },
   defense: { label: '디펜스', icon: '🛡️' },
   sorting: { label: '분류', icon: '🗂️' },
   matching: { label: '매칭', icon: '🃏' },

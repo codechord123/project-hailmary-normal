@@ -5,6 +5,7 @@ import { useProgress } from '@/content/progress'
 import { awardAnswer, awardClear } from '@/content/rewards'
 import { ContentStoryOverlay } from '@/content/components/ContentStoryOverlay'
 import { DefenseGame } from '@/content/minigames/DefenseGame'
+import { RunnerGame } from '@/content/minigames/RunnerGame'
 import { MatchingGame } from '@/content/minigames/MatchingGame'
 import { MemoryGame } from '@/content/minigames/MemoryGame'
 import { BossGame } from '@/content/minigames/BossGame'
@@ -48,6 +49,19 @@ export function ChapterPlay() {
     recordClear(unit.id, chapter.id, result?.stars ?? 3, unit.chapters.length) // 성과 별점(1~3)
     awardClear() // 공유 XP·에너지
     backToUnit()
+  }
+
+  if (chapter.mechanic === 'runner') {
+    return (
+      <RunnerGame
+        problems={chapter.problems}
+        title={chapter.title}
+        intro={chapter.intro}
+        onAnswer={onAnswer}
+        onClear={onClear}
+        onExit={backToUnit}
+      />
+    )
   }
 
   if (chapter.mechanic === 'defense') {

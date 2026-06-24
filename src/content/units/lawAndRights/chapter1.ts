@@ -8,7 +8,7 @@ import type { ChapterDef } from '@/content/types'
 export const chapter1: ChapterDef = {
   id: 'law-rights-1',
   title: '법이 뭐길래?',
-  mechanic: 'defense',
+  mechanic: 'runner',
   intro:
     '도시에 "혼란"이 밀려오고 있어요. 규칙과 법을 제대로 아는 수호자만이 이 물결을 막아낼 수 있어요. 준비됐나요?',
   story: [
