@@ -18,6 +18,8 @@ interface BaseProblem {
   /** 그림/자료 설명 — 있으면 화면에 자료 카드로 보여줌 */
   figure?: string
   hint?: string
+  /** 오답을 학습으로 되돌리는 한 줄 해설 (정답의 근거·핵심 개념). 풀이 후 표시 */
+  explain?: string
   difficulty: Difficulty
   /** 출처 메모 (예: "1회 7번") — 관리용, 화면 표시 X */
   source?: string

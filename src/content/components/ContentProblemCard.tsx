@@ -7,6 +7,8 @@ interface Props {
   problem: ContentProblem
   /** 정답 확인 후 결과 콜백 (점수 집계 등) */
   onResult?: (correct: boolean) => void
+  /** 풀이 후 보여줄 해설 (없으면 problem.explain → hint 순) */
+  explain?: string
 }
 
 /** 인덱스를 안정적으로 섞기 (problem.id 기준으로 한 번만) */
@@ -26,7 +28,8 @@ function useShuffledRights(problem: ContentProblem): number[] {
   }, [problem])
 }
 
-export function ContentProblemCard({ problem, onResult }: Props) {
+export function ContentProblemCard({ problem, onResult, explain }: Props) {
+  const explanation = explain ?? problem.explain ?? problem.hint
   const initial: ContentAnswer = useMemo(() => {
     if (problem.kind === 'mcq') return { kind: 'mcq', values: [] }
     if (problem.kind === 'ox') return { kind: 'ox', value: null }
@@ -237,8 +240,8 @@ export function ContentProblemCard({ problem, onResult }: Props) {
           ].join(' ')}
         >
           {correct ? '정답이에요! 🎉' : '아쉬워요, 정답을 확인해 보세요.'}
-          {problem.hint && (
-            <p className="mt-1 text-sm font-normal text-white/70">💡 {problem.hint}</p>
+          {explanation && (
+            <p className="mt-1 text-sm font-normal text-white/80">💡 {explanation}</p>
           )}
         </div>
       )}

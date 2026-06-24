@@ -3,6 +3,7 @@ import { Link, Navigate, useParams } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
 import { useUnitProgress, useProgress, weaknessScore } from '@/content/progress'
 import { ContentProblemCard } from '@/content/components/ContentProblemCard'
+import { explainFor } from '@/content/units/lawAndRights/explanations'
 import type { ContentProblem } from '@/content/types'
 
 /** 오답 노트 — 틀린 문제를 모아 다시 풀고, 맞히면 노트에서 지운다. */
@@ -55,6 +56,7 @@ export function WrongNotesContent() {
           <ContentProblemCard
             key={current.id}
             problem={current}
+            explain={explainFor(current)}
             onResult={(correct) => {
               if (correct) removeWrong(unit.id, current.id)
             }}

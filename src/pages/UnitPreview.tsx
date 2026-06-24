@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
 import { lawAndRightsUnit } from '@/content/units/lawAndRights'
 import { ContentProblemCard } from '@/content/components/ContentProblemCard'
+import { explainFor } from '@/content/units/lawAndRights/explanations'
 import type { ContentProblem } from '@/content/types'
 
 interface Entry {
@@ -116,6 +117,7 @@ export function UnitPreview() {
       <ContentProblemCard
         key={entry.problem.id}
         problem={entry.problem}
+        explain={explainFor(entry.problem)}
         onResult={handleResult}
       />
 
