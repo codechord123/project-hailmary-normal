@@ -31,10 +31,10 @@ const PADDLE_Y = H - 30
 const COLS = 10
 const ROWS = 8
 const BRICK_H = 14
-const ITEM_VY = 2.4
+const ITEM_VY = 1.9
 const MAX_BALLS = 6
 const TOTAL_LEVELS = 3
-const QUIZ_EVERY = 5 // 벽돌 5개 깰 때마다 문제 출제
+const QUIZ_EVERY = 7 // 벽돌 7개 깰 때마다 문제 출제
 const START_HEARTS = BALANCE.hearts
 
 const ITEM_EMOJI: Record<ItemType, string> = { quiz: '📝', points: '✨', expand: '⬌', slow: '🐢', life: '❤️', multi: '➕', fire: '🔥', bomb: '💣' }
@@ -140,10 +140,21 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
       }
     }
     bricks.current = list
+    // 특수 벽돌 최소 보장 — 맵마다 폭발·강철이 확실히 등장하도록 강제 변환
+    const ensure = (type: BrickType, frac: number) => {
+      const want = Math.max(3, Math.round(list.length * frac))
+      let have = list.filter((b) => b.type === type).length
+      for (const b of shuffle(list.filter((b) => b.type === 'normal'))) {
+        if (have >= want) break
+        b.type = type; b.hp = BRICK[type].hp; have++
+      }
+    }
+    ensure('explosive', 0.18)
+    ensure('steel', 0.15)
     bricksLeftRef.current = list.length
     setBricksLeft(list.length)
   }
-  const baseSpeed = () => 4.0 + (levelRef.current - 1) * 0.5
+  const baseSpeed = () => 5.2 + (levelRef.current - 1) * 0.7
   const spawnBall = () => {
     const s = baseSpeed()
     const b: Ball = { x: paddleX.current, y: PADDLE_Y - R - 1, vx: s * (Math.random() > 0.5 ? 0.4 : -0.4), vy: -s }
@@ -178,7 +189,8 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         setBestCombo((bc) => Math.max(bc, comboRef.current))
         addFloat(cx, cy, m > 1 ? `+${gain} x${m}` : `+${gain}`, m > 1 ? '#fde047' : '#fff')
       } else setScore((s) => s + BRICK[br.type].pts)
-      if (Math.random() < (br.type === 'explosive' || br.type === 'steel' ? 0.75 : 0.42))
+      const dropChance = br.type === 'explosive' || br.type === 'steel' ? 1 : chained ? 0.3 : 0.6
+      if (Math.random() < dropChance)
         items.current.push({ x: cx, y: br.y, type: ITEM_BAG[Math.floor(Math.random() * ITEM_BAG.length)] })
       if (br.type === 'explosive') {
         fx.shake(8); fx.freeze(4); fx.screenFlash(0.25, '251,146,60'); sfx.crit()
@@ -222,6 +234,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     }
 
     const step = () => {
+      try {
       frame++
       const sim = fx.tick()
       if (runningRef.current && !pausedRef.current && sim) {
@@ -284,7 +297,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         for (let i = items.current.length - 1; i >= 0; i--) {
           const it = items.current[i]
           it.y += ITEM_VY
-          const caught = it.y > PADDLE_Y - 10 && it.y < PADDLE_Y + PH + 12 && Math.abs(it.x - paddleX.current) < half2 + 10
+          const caught = it.y > PADDLE_Y - 14 && it.y < PADDLE_Y + PH + 16 && Math.abs(it.x - paddleX.current) < half2 + 16
           if (caught) {
             items.current.splice(i, 1)
             fx.burst(it.x, PADDLE_Y, { count: 10, color: ['#fde047', '#fff'], speed: 2.6 })
@@ -331,8 +344,8 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
           ctx.fillStyle = 'rgba(255,255,255,0.3)'; roundRect(ctx, br.x + 2, br.y + 1.5, br.w - 4, 2.5, 1.5); ctx.fill()
           if (br.hp >= 2) { ctx.strokeStyle = 'rgba(255,255,255,0.4)'; ctx.lineWidth = 1.2; roundRect(ctx, br.x, br.y, br.w, BRICK_H, 3); ctx.stroke() }
           if (BRICK[br.type].emoji) {
-            ctx.font = '12px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-            if (br.type === 'explosive') { ctx.shadowColor = '#f97316'; ctx.shadowBlur = 8 }
+            ctx.font = '13px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+            if (br.type === 'explosive') { ctx.shadowColor = '#f97316'; ctx.shadowBlur = 6 + Math.sin(frame * 0.2) * 4 }
             ctx.fillText(BRICK[br.type].emoji!, br.x + br.w / 2, br.y + BRICK_H / 2)
             ctx.shadowBlur = 0
           }
@@ -358,14 +371,27 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
           ctx.beginPath(); ctx.arc(b.x, b.y, fireOn ? R + 1 : R, 0, Math.PI * 2); ctx.fill()
         }
         ctx.shadowBlur = 0
-        ctx.font = '15px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-        for (const it of items.current) ctx.fillText(ITEM_EMOJI[it.type], it.x, it.y)
+        // 아이템 — 눈에 띄는 발광 캡슐
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+        for (const it of items.current) {
+          const pulse = 11 + Math.sin(frame * 0.18) * 1.5
+          ctx.fillStyle = 'rgba(8,12,28,0.7)'
+          ctx.shadowColor = '#fde047'; ctx.shadowBlur = 14
+          ctx.beginPath(); ctx.arc(it.x, it.y, pulse + 3, 0, Math.PI * 2); ctx.fill()
+          ctx.shadowBlur = 0
+          ctx.strokeStyle = '#fde047'; ctx.lineWidth = 2
+          ctx.beginPath(); ctx.arc(it.x, it.y, pulse + 3, 0, Math.PI * 2); ctx.stroke()
+          ctx.font = '17px serif'; ctx.fillText(ITEM_EMOJI[it.type], it.x, it.y)
+        }
         fx.drawParticles(ctx)
         ctx.font = 'bold 13px sans-serif'
         for (const f of floats.current) { ctx.globalAlpha = Math.min(1, f.life / 20); ctx.fillStyle = f.color; ctx.fillText(f.text, f.x, f.y) }
         ctx.globalAlpha = 1
         if (comboRef.current >= 2) { ctx.font = 'bold 15px sans-serif'; ctx.textAlign = 'left'; ctx.fillStyle = mult() > 1 ? '#fde047' : '#e2e8f0'; ctx.fillText(`COMBO ${comboRef.current}${mult() > 1 ? `  x${mult()}` : ''}`, 10, 16) }
         fx.end(ctx, W, H)
+      }
+      } catch (err) {
+        if (typeof console !== 'undefined') console.error('[Breakout] step error:', err)
       }
       rafRef.current = requestAnimationFrame(step)
     }
