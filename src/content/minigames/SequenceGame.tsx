@@ -102,8 +102,8 @@ export function SequenceGame({ problems, title, intro, onClear, onExit, onAnswer
     const correct = next.every((v, i) => v === i)
     onAnswer?.(problem.id, correct)
     if (correct) {
-      sfx.correct()
       const c = combo + 1
+      sfx.correct(c)
       setCombo(c)
       setBestCombo((b) => Math.max(b, c))
       juice.correct(c, { x: 0.5 })

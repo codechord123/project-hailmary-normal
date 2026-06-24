@@ -41,9 +41,12 @@ const tone = (freq: number, durMs: number, type: OscillatorType = 'sine', gain =
 }
 
 export const sfx = {
-  correct: () => {
-    tone(660, 90, 'triangle')
-    setTimeout(() => tone(990, 150, 'triangle'), 80)
+  /** 정답음 — 콤보가 높을수록 음정이 올라간다(동적 사운드). */
+  correct: (combo = 0) => {
+    const semi = Math.min(14, Math.max(0, combo)) // 콤보당 반음 상승
+    const f = (base: number) => base * Math.pow(2, semi / 12)
+    tone(f(660), 90, 'triangle')
+    setTimeout(() => tone(f(990), 150, 'triangle'), 80)
   },
   wrong: () => {
     tone(220, 220, 'sawtooth', 0.12)

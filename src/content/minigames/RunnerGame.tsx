@@ -278,7 +278,7 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
   const onQuizResult = (correct: boolean) => {
     if (quiz) onAnswer?.(quiz.id, correct)
     if (correct) {
-      sfx.correct()
+      sfx.correct(combo + 1)
       setCombo((c) => { const nc = c + 1; setBestCombo((b) => Math.max(b, nc)); juice.correct(nc, { x: 0.5 }); return nc })
       setScore((s) => s + 150)
       nitroRef.current = Math.min(100, nitroRef.current + 30); setNitro(nitroRef.current)

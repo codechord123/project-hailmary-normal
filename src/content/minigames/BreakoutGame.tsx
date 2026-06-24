@@ -326,7 +326,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
   const onQuizResult = (correct: boolean) => {
     if (quiz) onAnswer?.(quiz.id, correct)
     if (correct) {
-      sfx.correct()
+      sfx.correct(comboRef.current + 1)
       juice.correct(comboRef.current + 1, { x: 0.5 })
       setScore((s) => s + 100)
       shuffle(bricks.current.filter((br) => br.hp > 0)).slice(0, 4).forEach((br) => {

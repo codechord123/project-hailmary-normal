@@ -103,8 +103,8 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
     const correct = i === answerIdx
     onAnswer?.(problem.id, correct)
     if (correct) {
-      sfx.correct()
       const c = combo + 1
+      sfx.correct(c)
       setCombo(c)
       setBestCombo((b) => Math.max(b, c))
       juice.correct(c, { x: 0.5 })

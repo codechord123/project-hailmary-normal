@@ -92,7 +92,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
     if (status !== 'play') return
     const ok = v === problem.answer
     onAnswer?.(problem.id, ok)
-    sfx[ok ? 'correct' : 'wrong']()
+    if (ok) sfx.correct(combo + 1); else sfx.wrong()
     setFlash(ok ? 'ok' : 'no')
     setTimeout(() => setFlash(null), 160)
     if (ok) {

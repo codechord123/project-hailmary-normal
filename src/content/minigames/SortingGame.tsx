@@ -132,7 +132,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
       const c = combo + 1
       setCombo(c)
       juice.correct(c, { x: 0.5 })
-      sfx.correct()
+      sfx.correct(c)
       const next = { ...assigned, [itemIdx]: category }
       setAssigned(next)
       onAward?.(true)
