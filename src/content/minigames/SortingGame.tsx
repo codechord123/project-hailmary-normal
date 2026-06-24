@@ -1,14 +1,16 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { ConfettiBurst } from '@/components/ConfettiBurst'
+import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
+import { starsFromMistakes } from '@/content/score'
 
 interface Props {
   problems: ContentProblem[]
   title: string
   intro?: string
-  onClear: (result: { mistakes: number }) => void
+  onClear: (result: { mistakes: number; stars: number }) => void
   onExit: () => void
   /** 올바른 분류마다 공유 보상 */
   onAward?: (correct: boolean) => void
@@ -30,15 +32,17 @@ const shuffle = <T,>(arr: T[]): T[] => {
 }
 
 /**
- * 분류 미니게임 (챕터 2 — 「법은 무슨 일을 할까」).
+ * 분류 미니게임 (챕터 「법은 무슨 일을 할까」).
  * matching 문제의 오른쪽 값을 "분류 바구니(범주)"로 사용해,
- * 각 사례(왼쪽)를 알맞은 바구니에 분류한다.
+ * 각 사례(왼쪽)를 제한 시간 안에 알맞은 바구니에 분류한다.
  */
 export function SortingGame({ problems, title, intro, onClear, onExit, onAward }: Props) {
   const rounds = useMemo(
     () => problems.filter((p): p is Extract<ContentProblem, { kind: 'matching' }> => p.kind === 'matching'),
     [problems],
   )
+  const budget = Math.max(30, rounds.reduce((s, r) => s + r.pairs.length, 0) * 6)
+
   const [roundIdx, setRoundIdx] = useState(0)
   const round = rounds[roundIdx]
 
@@ -55,7 +59,21 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   const [selected, setSelected] = useState<number | null>(null)
   const [wrong, setWrong] = useState<number | null>(null)
   const [mistakes, setMistakes] = useState(0)
-  const [status, setStatus] = useState<'play' | 'clear'>('play')
+  const [combo, setCombo] = useState(0)
+  const [timeLeft, setTimeLeft] = useState(budget)
+  const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
+  const juice = useGameJuice()
+
+  useEffect(() => {
+    if (status !== 'play') return
+    const id = setInterval(() => {
+      setTimeLeft((t) => {
+        if (t <= 1) { setStatus('over'); return 0 }
+        return t - 1
+      })
+    }, 1000)
+    return () => clearInterval(id)
+  }, [status])
 
   if (rounds.length === 0) {
     return (
@@ -66,15 +84,37 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
     )
   }
 
+  const stars = starsFromMistakes(mistakes)
+
+  const restart = () => {
+    setRoundIdx(0); setAssigned({}); setSelected(null); setWrong(null)
+    setMistakes(0); setCombo(0); setTimeLeft(budget); setStatus('play')
+  }
+
   if (status === 'clear') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
         <ConfettiBurst show />
         <div className="text-6xl">🗂️</div>
         <h1 className="text-2xl font-black text-white">분류 완료!</h1>
-        <div className="text-white/70">실수 {mistakes}번</div>
+        <div className="text-amber-300 text-2xl">{'★'.repeat(stars)}<span className="text-white/20">{'★'.repeat(3 - stars)}</span></div>
+        <div className="text-white/70">실수 {mistakes}번 · 남은 시간 {timeLeft}초</div>
         <div className="flex gap-3">
-          <button onClick={() => onClear({ mistakes })} className="px-6 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition">완료</button>
+          <button onClick={() => onClear({ mistakes, stars })} className="px-6 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition">완료</button>
+          <button onClick={restart} className="px-6 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 transition">다시 하기</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'over') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
+        <div className="text-6xl">⏰</div>
+        <h1 className="text-2xl font-black text-white">시간이 다 됐어요!</h1>
+        <div className="text-white/70">다시 도전해 볼까요?</div>
+        <div className="flex gap-3">
+          <button onClick={restart} className="px-6 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition">다시 도전</button>
           <button onClick={onExit} className="px-6 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 transition">나가기</button>
         </div>
       </div>
@@ -82,25 +122,25 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   }
 
   const place = (category: string) => {
-    if (selected === null) return
+    if (status !== 'play' || selected === null) return
     const item = items.find((it) => it.idx === selected)
     if (!item) return
     if (item.category === category) {
+      const c = combo + 1
+      setCombo(c)
+      juice.correct(c, { x: 0.5 })
       sfx.correct()
       const next = { ...assigned, [selected]: category }
       setAssigned(next)
       setSelected(null)
       onAward?.(true)
       if (Object.keys(next).length >= items.length) {
-        // 라운드 완료 → 다음 라운드 또는 클리어
         if (roundIdx + 1 >= rounds.length) { setStatus('clear'); sfx.clear() }
-        else {
-          setRoundIdx((r) => r + 1)
-          setAssigned({})
-        }
+        else { setRoundIdx((r) => r + 1); setAssigned({}) }
       }
     } else {
       sfx.wrong()
+      setCombo(0)
       setMistakes((m) => m + 1)
       setWrong(selected)
       onAward?.(false)
@@ -111,17 +151,24 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
 
   const pool = items.filter((it) => assigned[it.idx] === undefined)
   const placedTotal = Object.keys(assigned).length
+  const lowTime = timeLeft <= 10
 
   return (
-    <div className="min-h-screen px-4 sm:px-6 py-4 max-w-2xl mx-auto flex flex-col">
+    <div className="min-h-screen px-4 sm:px-6 py-4 max-w-2xl mx-auto flex flex-col relative">
+      <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} />
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
         <div className="text-xs text-white/60 flex gap-3">
           <span>라운드 {roundIdx + 1}/{rounds.length}</span>
-          <span>분류 {placedTotal}/{items.length}</span>
-          <span>실수 {mistakes}</span>
+          <span>콤보 {combo}</span>
+          <span className={lowTime ? 'text-red-400 font-bold' : ''}>⏱ {timeLeft}s</span>
         </div>
       </header>
+
+      <div className="h-1.5 mt-2 rounded-full bg-white/10 overflow-hidden">
+        <div className={`h-full transition-all duration-1000 ease-linear ${lowTime ? 'bg-red-500' : 'bg-space-accent'}`}
+          style={{ width: `${(timeLeft / budget) * 100}%` }} />
+      </div>
 
       <div className="mt-2 rounded-xl bg-white/5 border border-white/10 px-4 py-2">
         <div className="text-sm font-bold text-indigo-200">🗂️ {title}</div>
@@ -132,7 +179,6 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
         <p className="mt-2 text-xs text-white/55 text-center leading-relaxed">{intro}</p>
       )}
 
-      {/* 분류할 사례들 */}
       <div className="mt-4">
         <div className="text-[11px] text-white/40 font-bold mb-1">분류할 사례 (눌러서 선택)</div>
         <div className="flex flex-wrap gap-2 min-h-[3rem]">
@@ -154,7 +200,6 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
         </div>
       </div>
 
-      {/* 바구니 */}
       <div className="mt-4 grid grid-cols-2 gap-3">
         {categories.map((cat) => {
           const inside = items.filter((it) => assigned[it.idx] === cat)

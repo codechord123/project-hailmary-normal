@@ -4,12 +4,13 @@ import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { ConfettiBurst } from '@/components/ConfettiBurst'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
+import { starsFromHearts } from '@/content/score'
 
 interface Props {
   problems: ContentProblem[]
   title: string
   intro?: string
-  onClear: (result: { score: number; bestCombo: number }) => void
+  onClear: (result: { score: number; bestCombo: number; stars: number }) => void
   onExit: () => void
   onAnswer?: (problemId: string, correct: boolean) => void
 }
@@ -95,7 +96,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
         <ConfettiBurst show />
         <Result emoji="⚡" title="번개처럼 통과!"
           lines={[`정답 ${correctCount}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-          primary={{ label: '완료', onClick: () => onClear({ score, bestCombo }) }}
+          primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(hearts, START_HEARTS) }) }}
           secondary={{ label: '다시 하기', onClick: restart }} />
       </>
     )

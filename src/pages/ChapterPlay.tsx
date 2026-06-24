@@ -43,8 +43,8 @@ export function ChapterPlay() {
     recordAnswer(unit.id, problemId, correct) // 단원별 오답 노트
     awardAnswer(correct) // 공유 XP·에너지
   }
-  const onClear = () => {
-    recordClear(unit.id, chapter.id, 3, unit.chapters.length) // 단원별 별점
+  const onClear = (result?: { stars?: number }) => {
+    recordClear(unit.id, chapter.id, result?.stars ?? 3, unit.chapters.length) // 성과 별점(1~3)
     awardClear() // 공유 XP·에너지
     backToUnit()
   }

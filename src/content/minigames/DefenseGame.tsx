@@ -5,13 +5,14 @@ import { judgeContent } from '@/content/judge'
 import { sfx } from '@/lib/sfx'
 import { ConfettiBurst } from '@/components/ConfettiBurst'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
+import { starsFromHearts } from '@/content/score'
 
 interface Props {
   problems: ContentProblem[]
   title: string
   intro?: string
   /** 목표 처치 수를 모두 막으면 호출 */
-  onClear: (result: { score: number; bestCombo: number }) => void
+  onClear: (result: { score: number; bestCombo: number; stars: number }) => void
   /** 나가기 */
   onExit: () => void
   /** 문제 채점 결과 기록 (오답 노트·XP용) */
@@ -184,7 +185,7 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
           emoji="🎉"
           title="도시를 지켜냈어요!"
           lines={[`처치 ${killed}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-          primary={{ label: '완료', onClick: () => onClear({ score, bestCombo }) }}
+          primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(hearts, START_HEARTS) }) }}
           secondary={{ label: '다시 하기', onClick: restart }}
         />
       </>

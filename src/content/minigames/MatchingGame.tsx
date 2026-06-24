@@ -1,19 +1,20 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { ConfettiBurst } from '@/components/ConfettiBurst'
+import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
+import { starsFromMistakes } from '@/content/score'
 
 interface Props {
   problems: ContentProblem[]
   title: string
   intro?: string
-  onClear: (result: { mistakes: number; score: number }) => void
+  onClear: (result: { mistakes: number; score: number; stars: number }) => void
   onExit: () => void
 }
 
 interface Card {
-  /** 짝 인덱스 (왼쪽 i ↔ 오른쪽 i 가 정답) */
   pairId: number
   text: string
 }
@@ -29,8 +30,8 @@ const shuffle = <T,>(arr: T[]): T[] => {
 }
 
 /**
- * 매칭 미니게임 (챕터 2 — 「법은 무슨 일을 할까」).
- * 법 카드(왼쪽)와 역할 카드(오른쪽)를 짝지어 법전을 복구한다.
+ * 매칭 미니게임 (챕터 「여러 가지 법」).
+ * 법 카드(왼쪽)와 역할 카드(오른쪽)를 제한 시간 안에 짝지어 법전을 복구한다.
  */
 export function MatchingGame({ problems, title, intro, onClear, onExit }: Props) {
   const { lefts, rights, prompt } = useMemo(() => {
@@ -42,13 +43,28 @@ export function MatchingGame({ problems, title, intro, onClear, onExit }: Props)
     return { lefts, rights, prompt }
   }, [problems])
 
+  const total = lefts.length
+  const budget = Math.max(30, total * 7)
+
   const [matched, setMatched] = useState<Set<number>>(new Set())
   const [selected, setSelected] = useState<Selection>(null)
-  const [wrong, setWrong] = useState<number | null>(null) // 방금 틀린 pairId(흔들기)
+  const [wrong, setWrong] = useState<number | null>(null)
   const [mistakes, setMistakes] = useState(0)
+  const [combo, setCombo] = useState(0)
+  const [timeLeft, setTimeLeft] = useState(budget)
+  const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
+  const juice = useGameJuice()
 
-  const total = lefts.length
-  const done = matched.size >= total && total > 0
+  useEffect(() => {
+    if (status !== 'play') return
+    const id = setInterval(() => {
+      setTimeLeft((t) => {
+        if (t <= 1) { setStatus('over'); return 0 }
+        return t - 1
+      })
+    }, 1000)
+    return () => clearInterval(id)
+  }, [status])
 
   if (total === 0) {
     return (
@@ -60,26 +76,26 @@ export function MatchingGame({ problems, title, intro, onClear, onExit }: Props)
   }
 
   const score = Math.max(100, total * 100 - mistakes * 30)
+  const stars = starsFromMistakes(mistakes)
 
   const tap = (side: 'L' | 'R', pairId: number) => {
-    if (matched.has(pairId)) return
-    if (!selected) {
+    if (status !== 'play' || matched.has(pairId)) return
+    if (!selected || selected.side === side) {
       setSelected({ side, pairId })
       return
     }
-    if (selected.side === side) {
-      // 같은 쪽 재선택 → 선택 이동
-      setSelected({ side, pairId })
-      return
-    }
-    // 양쪽 하나씩 선택됨 → 판정
     if (selected.pairId === pairId) {
       const nextMatched = new Set(matched).add(pairId)
       setMatched(nextMatched)
       setSelected(null)
-      sfx[nextMatched.size >= total ? 'clear' : 'correct']()
+      const c = combo + 1
+      setCombo(c)
+      juice.correct(c, { x: 0.5 })
+      if (nextMatched.size >= total) { setStatus('clear'); sfx.clear() }
+      else sfx.correct()
     } else {
       sfx.wrong()
+      setCombo(0)
       setMistakes((m) => m + 1)
       setWrong(pairId)
       setTimeout(() => setWrong(null), 350)
@@ -88,26 +104,38 @@ export function MatchingGame({ problems, title, intro, onClear, onExit }: Props)
   }
 
   const restart = () => {
-    setMatched(new Set())
-    setSelected(null)
-    setWrong(null)
-    setMistakes(0)
+    setMatched(new Set()); setSelected(null); setWrong(null)
+    setMistakes(0); setCombo(0); setTimeLeft(budget); setStatus('play')
   }
 
-  if (done) {
+  if (status === 'clear') {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
         <ConfettiBurst show />
         <div className="text-6xl">📜</div>
         <h1 className="text-2xl font-black text-white">법전을 복구했어요!</h1>
+        <div className="text-amber-300 text-2xl">{'★'.repeat(stars)}<span className="text-white/20">{'★'.repeat(3 - stars)}</span></div>
         <div className="text-white/70 flex flex-col gap-1">
-          <span>짝 {total}개 완성</span>
-          <span>실수 {mistakes}번</span>
-          <span>점수 {score}</span>
+          <span>짝 {total}개 완성 · 실수 {mistakes}번</span>
+          <span>남은 시간 {timeLeft}초 · 점수 {score}</span>
         </div>
         <div className="flex gap-3">
-          <button onClick={() => onClear({ mistakes, score })} className="px-6 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition">완료</button>
+          <button onClick={() => onClear({ mistakes, score, stars })} className="px-6 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition">완료</button>
           <button onClick={restart} className="px-6 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 transition">다시 하기</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (status === 'over') {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-5 px-6 text-center">
+        <div className="text-6xl">⏰</div>
+        <h1 className="text-2xl font-black text-white">시간이 다 됐어요!</h1>
+        <div className="text-white/70">{matched.size}/{total} 짝 완성 · 다시 도전해 볼까요?</div>
+        <div className="flex gap-3">
+          <button onClick={restart} className="px-6 py-3 rounded-xl font-bold bg-indigo-500 hover:bg-indigo-400 transition">다시 도전</button>
+          <button onClick={onExit} className="px-6 py-3 rounded-xl font-bold bg-white/10 hover:bg-white/20 transition">나가기</button>
         </div>
       </div>
     )
@@ -120,15 +148,25 @@ export function MatchingGame({ problems, title, intro, onClear, onExit }: Props)
     return 'border-white/15 bg-white/5 text-white/90 hover:bg-white/10'
   }
 
+  const lowTime = timeLeft <= 10
+
   return (
-    <div className="min-h-screen px-4 sm:px-6 py-4 max-w-2xl mx-auto flex flex-col">
+    <div className="min-h-screen px-4 sm:px-6 py-4 max-w-2xl mx-auto flex flex-col relative">
+      <JuiceOverlay floaters={juice.floaters} grade={juice.grade} combo={combo} />
       <header className="flex items-center justify-between">
         <button onClick={onExit} className="text-white/60 hover:text-white text-sm">← 나가기</button>
         <div className="text-xs text-white/60 flex gap-3">
           <span>완성 {matched.size}/{total}</span>
-          <span>실수 {mistakes}</span>
+          <span>콤보 {combo}</span>
+          <span className={lowTime ? 'text-red-400 font-bold' : ''}>⏱ {timeLeft}s</span>
         </div>
       </header>
+
+      {/* 시간 바 */}
+      <div className="h-1.5 mt-2 rounded-full bg-white/10 overflow-hidden">
+        <div className={`h-full transition-all duration-1000 ease-linear ${lowTime ? 'bg-red-500' : 'bg-space-accent'}`}
+          style={{ width: `${(timeLeft / budget) * 100}%` }} />
+      </div>
 
       <div className="mt-2 rounded-xl bg-white/5 border border-white/10 px-4 py-2">
         <div className="text-sm font-bold text-indigo-200">🃏 {title}</div>
@@ -140,7 +178,6 @@ export function MatchingGame({ problems, title, intro, onClear, onExit }: Props)
       )}
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        {/* 왼쪽: 법 */}
         <div className="flex flex-col gap-2">
           <div className="text-[11px] text-white/40 font-bold text-center">법</div>
           {lefts.map((c) => (
@@ -155,7 +192,6 @@ export function MatchingGame({ problems, title, intro, onClear, onExit }: Props)
             </motion.button>
           ))}
         </div>
-        {/* 오른쪽: 하는 일 */}
         <div className="flex flex-col gap-2">
           <div className="text-[11px] text-white/40 font-bold text-center">하는 일</div>
           {rights.map((c) => (
