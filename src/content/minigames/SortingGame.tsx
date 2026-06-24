@@ -66,6 +66,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   const [combo, setCombo] = useState(0)
   const [timeLeft, setTimeLeft] = useState(budget)
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
+  const [revealCat, setRevealCat] = useState<string | null>(null)
   const juice = useGameJuice()
 
   useEffect(() => {
@@ -135,8 +136,10 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
       setCombo(0)
       setMistakes((m) => m + 1)
       setWrong(selected)
+      setRevealCat(`'${item.text}' → '${item.category}'`)
       onAward?.(false)
       setTimeout(() => setWrong(null), 350)
+      setTimeout(() => setRevealCat(null), 1400)
       setSelected(null)
     }
   }
@@ -191,6 +194,12 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
           ))}
         </div>
       </div>
+
+      {revealCat && (
+        <div className="mt-2 p-2 rounded-lg bg-amber-400/15 text-amber-100 border border-amber-300/40 text-xs text-center font-bold">
+          ❌ 정답: {revealCat}
+        </div>
+      )}
 
       <div className="mt-4 grid grid-cols-2 gap-3">
         {categories.map((cat) => {

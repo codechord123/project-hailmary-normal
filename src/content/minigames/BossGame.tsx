@@ -114,14 +114,19 @@ export function BossGame({
     } else {
       setCombo(0)
       setReact('attack')
-      setFeedback('🗯️ 빗나갔어요! 빌런의 반격!')
+      const correctText = problem.kind === 'mcq'
+        ? problem.choices[problem.correctIndexes[0]]
+        : problem.kind === 'ox'
+          ? (problem.answer ? '⭕ (맞음)' : '❌ (틀림)')
+          : ''
+      setFeedback(`🗯️ 빗나갔어요! 정답: ${correctText}`)
       setTimeout(() => setReact('idle'), 400)
       setHearts((h) => {
         const next = h - 1
         if (next <= 0) setStatus('over')
         return next
       })
-      if (hearts - 1 > 0) setTimeout(advance, 600)
+      if (hearts - 1 > 0) setTimeout(advance, 1100)
     }
   }
 

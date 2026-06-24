@@ -73,6 +73,7 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
   const [bestCombo, setBestCombo] = useState(0)
   const [score, setScore] = useState(0)
   const [feedback, setFeedback] = useState<'pass' | 'crash' | null>(null)
+  const [revealText, setRevealText] = useState<string | null>(null)
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
   const juice = useGameJuice()
 
@@ -104,13 +105,14 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
       sfx.wrong()
       setCombo(0)
       setFeedback('crash')
+      setRevealText(`정답: ${g.problem.choices[g.laneChoiceIdxs[g.correctLane]]}`)
       setHearts((h) => {
         const n = h - 1
         if (n <= 0) setStatus('over')
         return n
       })
     }
-    setTimeout(() => setFeedback(null), 500)
+    setTimeout(() => { setFeedback(null); setRevealText(null) }, 1300)
   }, [juice, onAnswer, pool.length])
 
   // 관문 스폰 + 타이머
@@ -223,6 +225,12 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
           {feedback === 'crash' ? '💥' : '🏃'}
         </motion.div>
       </div>
+
+      {revealText && (
+        <div className="mt-2 p-2 rounded-lg bg-amber-400/15 text-amber-100 border border-amber-300/40 text-sm text-center font-bold">
+          ❌ {revealText}
+        </div>
+      )}
 
       {/* 조향 버튼 */}
       <div className="mt-3 grid grid-cols-3 gap-2">
