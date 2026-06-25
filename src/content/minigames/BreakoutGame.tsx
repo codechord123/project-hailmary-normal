@@ -125,8 +125,8 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     const lv = levelRef.current
     if (row < 2) return Math.random() < 0.32 + lv * 0.06 ? 'steel' : 'tough'
     const r = Math.random()
-    if (r < 0.04 + lv * 0.01) return 'explosive'
-    if (r < 0.16 + lv * 0.04) return 'steel'
+    if (r < 0.01) return 'explosive' // 거의 없게
+    if (r < 0.14 + lv * 0.04) return 'steel'
     return 'normal'
   }
   const initBricks = () => {
@@ -154,8 +154,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         b.type = type; b.hp = BRICK[type].hp; have++
       }
     }
-    ensure('explosive', 0.05, 2) // 폭발 벽돌은 드물게
-    ensure('steel', 0.12, 3)
+    ensure('steel', 0.12, 3) // 폭발 벽돌은 보장 없이 1% 확률로만(거의 없게)
     bricksLeftRef.current = list.length
     setBricksLeft(list.length)
   }
