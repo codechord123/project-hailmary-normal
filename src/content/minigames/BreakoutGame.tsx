@@ -509,7 +509,15 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         applyMissionReward()
       }
       setBricksLeft(bricksLeftRef.current)
-    } else { sfx.wrong(); comboRef.current = 0; setCombo(0); flashBuff('미션 실패… 다시 도전!') }
+    } else {
+      sfx.wrong(); comboRef.current = 0; setCombo(0)
+      // 오답 → 하트 -1 (하트 소진 시 게임 오버)
+      if (lives.lose()) {
+        runningRef.current = false; setQuiz(null); setStatus('over')
+        return
+      }
+      flashBuff('미션 실패… 하트 -1 💔')
+    }
     // 큐에서 하나 소진 → 남았으면 다음 미션, 없으면 게임 재개
     pendingRef.current = Math.max(0, pendingRef.current - 1)
     setPending(pendingRef.current)
