@@ -76,6 +76,8 @@ export interface ChapterDef {
   intro?: string
   /** 챕터 시작 스토리 대사 (시작 전 오버레이로 표시) */
   story?: string[]
+  /** 게임 전 핵심 개념 카드 (가르치기 → 풀기) */
+  concept?: { title: string; points: string[] }
   /** 문제 통(pool) — 계속 추가만 하면 됨 */
   problems: ContentProblem[]
 }

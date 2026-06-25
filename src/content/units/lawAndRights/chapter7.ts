@@ -10,6 +10,13 @@ export const chapter7: ChapterDef = {
   id: 'law-rights-7',
   title: '절차의 달인',
   mechanic: 'timeline',
+  concept: {
+    title: '민주적 절차',
+    points: [
+      '재판·입법·선거처럼 정해진 "순서(절차)"가 있어요.',
+      '절차를 지키면 누구에게나 공정하게 결정돼요.',
+    ],
+  },
   intro:
     '권리가 지켜지려면 "올바른 순서"가 중요해요. 뒤섞인 단계를 차례대로 배열해 흐름을 복원하세요!',
   story: [

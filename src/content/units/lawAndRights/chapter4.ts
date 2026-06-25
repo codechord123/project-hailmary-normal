@@ -9,6 +9,14 @@ export const chapter4: ChapterDef = {
   id: 'law-rights-4',
   title: '인권이란 무엇일까',
   mechanic: 'oxrush',
+  concept: {
+    title: '인권의 세 가지 특징',
+    points: [
+      '천부성 — 태어날 때부터 누구나 가져요.',
+      '보편성 — 모든 사람이 똑같이 가져요.',
+      '불가침성 — 누구도 함부로 빼앗을 수 없어요.',
+    ],
+  },
   intro: '인권에 대한 진술이 번개처럼 지나가요! 맞으면 ⭕, 틀리면 ❌ — 빠르게 판단해요.',
   story: [
     '편견의 안개가 번개처럼 몰려와요!',

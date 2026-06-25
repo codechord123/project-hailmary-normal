@@ -10,6 +10,14 @@ export const chapter2: ChapterDef = {
   id: 'law-rights-2',
   title: '법은 무슨 일을 할까',
   mechanic: 'sorting',
+  concept: {
+    title: '법의 네 가지 역할',
+    points: [
+      '사회 질서를 지켜요 — 예: 교통 신호.',
+      '사람들의 권리를 보호해요 — 예: 소비자 보호.',
+      '다툼을 공정하게 해결하고, 안전한 환경을 만들어요.',
+    ],
+  },
   intro: '여러 사례가 뒤섞였어요. 각 사례가 법의 어떤 "역할"인지 알맞은 바구니에 분류해요!',
   story: [
     '도시의 법전이 뒤죽박죽 흩어져버렸어요.',

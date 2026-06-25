@@ -6,6 +6,7 @@ import { awardAnswer, awardClear } from '@/content/rewards'
 import { unlockAudio } from '@/lib/sfx'
 import { playBgm, stop as stopBgm, bgmForMechanic } from '@/lib/bgm'
 import { ContentStoryOverlay } from '@/content/components/ContentStoryOverlay'
+import { ConceptCard } from '@/content/components/ConceptCard'
 import { DefenseGame } from '@/content/minigames/DefenseGame'
 import { RunnerGame } from '@/content/minigames/RunnerGame'
 import { MatchingGame } from '@/content/minigames/MatchingGame'
@@ -29,6 +30,7 @@ export function ChapterPlay() {
   const recordAnswer = useProgress((s) => s.recordAnswer)
   const recordClear = useProgress((s) => s.recordClear)
   const [startedId, setStartedId] = useState<string | null>(null)
+  const [conceptDoneId, setConceptDoneId] = useState<string | null>(null)
 
   // 챕터 메커니즘에 맞는 BGM 재생 — 외부 에셋 없이 합성 트랙 재사용. 떠날 때 정지.
   const mechanic = chapter?.mechanic
@@ -50,6 +52,19 @@ export function ChapterPlay() {
         lines={chapter.story}
         startLabel={unit.narrative?.startLabel ?? '시작'}
         onStart={() => setStartedId(chapter.id)}
+      />
+    )
+  }
+
+  // 스토리 뒤 핵심 개념 카드 (가르치기 → 풀기)
+  if (chapter.concept && conceptDoneId !== chapter.id) {
+    return (
+      <ConceptCard
+        hero={unit.narrative?.hero ?? unit.theme}
+        title={chapter.title}
+        concept={chapter.concept}
+        startLabel={unit.narrative?.startLabel ?? '시작'}
+        onStart={() => setConceptDoneId(chapter.id)}
       />
     )
   }

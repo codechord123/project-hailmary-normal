@@ -9,6 +9,13 @@ export const chapter1: ChapterDef = {
   id: 'law-rights-1',
   title: '법이 뭐길래?',
   mechanic: 'runner',
+  concept: {
+    title: '법과 규칙의 차이',
+    points: [
+      '규칙은 우리 반·도서관처럼 특정 곳에서만 지키는 약속이에요.',
+      '법은 나라 모든 사람이 지켜야 하고, 어기면 국가가 강제로 처벌할 수 있어요.',
+    ],
+  },
   intro:
     '도시에 "혼란"이 밀려오고 있어요. 규칙과 법을 제대로 아는 수호자만이 이 물결을 막아낼 수 있어요. 준비됐나요?',
   story: [
