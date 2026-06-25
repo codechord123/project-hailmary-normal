@@ -4,6 +4,7 @@ import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
 import { useGameJuice, JuiceOverlay } from '@/content/components/GameJuice'
 import { GameResult } from '@/content/components/GameResult'
+import { explainFor } from '@/content/units/lawAndRights/explanations'
 import { ScreenShake } from '@/components/arcade/ScreenShake'
 import { useLives, GameItemBar, HeartBar } from '@/content/components/GameItems'
 import { starsFromHearts } from '@/content/score'
@@ -114,15 +115,13 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
         if (ns >= goal) { setStatus('clear'); sfx.clear() }
         return ns
       })
-      setTimeout(() => { if (solved + 1 < goal) advance() }, 700)
     } else {
       sfx.wrong()
       setCombo(0)
       setShakeN((n) => n + 1)
-      const dead = lives.lose()
-      if (dead) setStatus('over')
-      setTimeout(() => { if (!dead) advance() }, 1100)
+      lives.lose() && setStatus('over')
     }
+    // 자동 진행 대신 해설을 보여주고 '다음 사건' 버튼으로 진행(읽을 시간 확보)
   }
 
   const restart = () => {
@@ -207,6 +206,19 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
           )
         })}
       </div>
+
+      {/* 지목 후 — 정답·해설 + 다음 사건 */}
+      {picked !== null && status === 'play' && (
+        <div className={`mt-3 rounded-xl p-3 border ${picked === answerIdx ? 'border-green-400/50 bg-green-400/10' : 'border-red-400/50 bg-red-400/10'}`}>
+          <div className={`text-sm font-bold ${picked === answerIdx ? 'text-green-200' : 'text-red-200'}`}>
+            {picked === answerIdx ? '✅ 정답! 사건 해결' : `❌ 아쉬워요 — 범인은 ${problem.choices[answerIdx]}`}
+          </div>
+          {explainFor(problem) && <div className="text-xs text-white/75 mt-1.5 leading-relaxed">💡 {explainFor(problem)}</div>}
+          <button onClick={advance} className="mt-3 w-full py-2 rounded-lg bg-indigo-500 hover:bg-indigo-400 font-bold transition active:scale-95">
+            다음 사건 ▶
+          </button>
+        </div>
+      )}
 
       {/* 단서 */}
       <button
