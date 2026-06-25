@@ -97,6 +97,8 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
   const comboRef = useRef(0)
   const destroyedRef = useRef(0) // 마지막 적립 이후 깬 벽돌 수
   const pendingRef = useRef(0) // 쌓인(아직 안 푼) 문제 수
+  const missionRef = useRef(0) // 정의 게이지(미션 성공 누적 0..3)
+  const missionNoRef = useRef(0) // 누적 미션 번호
   const levelRef = useRef(1)
   const prevPattern = useRef(-1)
   const pausedRef = useRef(false)
@@ -114,6 +116,8 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
   const [bricksLeft, setBricksLeft] = useState(0)
   const [ballCount, setBallCount] = useState(1)
   const [pending, setPending] = useState(0) // 쌓인 문제 수(UI)
+  const [mission, setMission] = useState(0) // 정의 게이지(UI)
+  const [missionNo, setMissionNo] = useState(0)
   const [level, setLevel] = useState(1)
   const [buffs, setBuffs] = useState<{ expand: boolean; slow: boolean; fire: boolean }>({ expand: false, slow: false, fire: false })
   const [buff, setBuff] = useState<string | null>(null)
@@ -307,7 +311,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
           destroyedRef.current = 0
           pendingRef.current++
           setPending(pendingRef.current)
-          if (!pausedRef.current) { pausedRef.current = true; setQuiz(nextQuiz()) }
+          if (!pausedRef.current) { pausedRef.current = true; missionNoRef.current++; setMissionNo(missionNoRef.current); setQuiz(nextQuiz()) }
           sfx.tick?.()
         }
 
@@ -445,6 +449,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
 
   const restart = () => {
     levelRef.current = 1; setLevel(1); prevPattern.current = -1; destroyedRef.current = 0; pendingRef.current = 0
+    missionRef.current = 0; setMission(0); missionNoRef.current = 0; setMissionNo(0)
     initBricks(); spawnBall(); items.current = []; floats.current = []; comboRef.current = 0
     quizQueue.current = shuffle(quizPool)
     pwRef.current = PW; expandFrames.current = 0; slowFrames.current = 0; fireFrames.current = 0; slowMul.current = 1
@@ -453,24 +458,63 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     lives.reset(); setScore(0); setCombo(0); setBestCombo(0); setPending(0); setQuiz(null); setStatus('play')
   }
 
+  // 벽돌 1개 즉시 제거(효과 포함)
+  const clearOne = (br: Brick) => {
+    if (br.hp <= 0) return
+    br.hp = 0; bricksLeftRef.current -= 1
+    fx.burst(br.x + br.w / 2, br.y + BRICK_H / 2, { count: 8, color: [`hsl(${br.hue} 90% 72%)`, '#fff'], speed: 3, gravity: 0.15 })
+  }
+
+  // 정답 시 발동하는 랜덤 특수기술(미션 보상)
+  const applyMissionReward = () => {
+    const pool = bricks.current.filter((b) => b.hp > 0)
+    if (pool.length === 0) return
+    const mv = ['row', 'multi', 'score', 'expand', 'strike'][Math.floor(Math.random() * 5)]
+    if (mv === 'row') {
+      const pick = pool[Math.floor(Math.random() * pool.length)]
+      bricks.current.forEach((b) => { if (b.hp > 0 && Math.abs(b.y - pick.y) < 2) clearOne(b) })
+      flashBuff('⚡ 정의의 번개! 한 줄 격파'); fx.shake(8); fx.screenFlash(0.32, '253,224,71')
+    } else if (mv === 'multi') {
+      for (const src of balls.current.slice(0, 2)) {
+        if (balls.current.length >= MAX_BALLS) break
+        const mag = Math.hypot(src.vx, src.vy) || baseSpeed()
+        const ang = Math.atan2(src.vy, src.vx) + (Math.random() - 0.5)
+        balls.current.push({ x: src.x, y: src.y, vx: Math.cos(ang) * mag, vy: -Math.abs(Math.sin(ang) * mag) })
+      }
+      setBallCount(balls.current.length); flashBuff('🛡️ 지원군 도착! 멀티볼'); sfx.powerUp()
+    } else if (mv === 'score') {
+      setScore((s) => s + 250); addFloat(W / 2, 64, '+250', '#fde047'); flashBuff('💰 정의 포인트 +250'); sfx.powerUp()
+    } else if (mv === 'expand') {
+      pwRef.current = PW * 1.6; expandFrames.current = 540; setBuffs((b) => ({ ...b, expand: true })); flashBuff('⬌ 수호 강화!'); sfx.powerUp()
+    } else {
+      shuffle(pool).slice(0, 5).forEach(clearOne); flashBuff('💥 정의의 일격! 벽돌 격파'); fx.shake(8); fx.screenFlash(0.3, '253,224,71')
+    }
+  }
+
   const onQuizResult = (correct: boolean) => {
     if (quiz) onAnswer?.(quiz.id, correct)
     if (correct) {
       sfx.correct(comboRef.current + 1)
       juice.correct(comboRef.current + 1, { x: 0.5 })
-      setScore((s) => s + 100)
-      shuffle(bricks.current.filter((br) => br.hp > 0)).slice(0, 5).forEach((br) => {
-        fx.burst(br.x + br.w / 2, br.y + BRICK_H / 2, { count: 10, color: [`hsl(${br.hue} 90% 70%)`, '#fff'], speed: 3.2, gravity: 0.15 })
-        br.hp = 0; bricksLeftRef.current -= 1
-      })
-      fx.shake(8); fx.screenFlash(0.4, '253,224,71')
+      setScore((s) => s + 120)
+      const g = missionRef.current + 1
+      if (g >= 3) {
+        // 정의 게이지 MAX → 필살기: 남은 벽돌 절반 격파
+        missionRef.current = 0; setMission(0)
+        const alive = bricks.current.filter((b) => b.hp > 0)
+        shuffle(alive).slice(0, Math.ceil(alive.length / 2)).forEach(clearOne)
+        flashBuff('🌟 필살기! 정의의 폭풍!'); fx.shake(16); fx.freeze(3); fx.screenFlash(0.6, '253,224,71'); sfx.clear()
+      } else {
+        missionRef.current = g; setMission(g)
+        applyMissionReward()
+      }
       setBricksLeft(bricksLeftRef.current)
-    } else { sfx.wrong(); comboRef.current = 0; setCombo(0) }
-    // 큐에서 하나 소진 → 남았으면 다음 문제, 없으면 게임 재개
+    } else { sfx.wrong(); comboRef.current = 0; setCombo(0); flashBuff('미션 실패… 다시 도전!') }
+    // 큐에서 하나 소진 → 남았으면 다음 미션, 없으면 게임 재개
     pendingRef.current = Math.max(0, pendingRef.current - 1)
     setPending(pendingRef.current)
     if (pendingRef.current > 0) {
-      setQuiz(nextQuiz())
+      missionNoRef.current++; setMissionNo(missionNoRef.current); setQuiz(nextQuiz())
     } else {
       setQuiz(null); pausedRef.current = false
     }
@@ -516,7 +560,12 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
           <span className="text-white/60 text-xs">Lv {level}/{TOTAL_LEVELS} · 벽돌 {bricksLeft}{ballCount > 1 ? ` · 🔵×${ballCount}` : ''} · {score}</span>
         </div>
       </header>
-      <div className="mt-1 text-center text-sm font-bold text-indigo-200">🧱 {title}</div>
+      <div className="mt-1 flex items-center justify-center gap-2 text-sm font-bold text-indigo-200">
+        🛡️ {title}
+        <span className="flex items-center gap-0.5" title="정의 게이지 — 미션 3회 성공 시 필살기">
+          {[0, 1, 2].map((i) => <span key={i} className={`w-4 h-1.5 rounded-full ${i < mission ? 'bg-yellow-300' : 'bg-white/15'}`} />)}
+        </span>
+      </div>
 
       <div className="mt-2 flex items-center gap-2">
         <div className="flex-1">
@@ -548,9 +597,15 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
 
       {quiz && (
         <div className="fixed inset-0 z-40 bg-black/70 flex items-center justify-center px-4">
-          <div className="w-full max-w-md rounded-2xl bg-space-900 border border-white/15 p-5">
-            <div className="text-center text-sm font-bold text-amber-200 mb-1">📝 문제를 풀어야 계속할 수 있어요!</div>
-            {pending > 1 && <div className="text-center text-[11px] text-white/50 mb-2">남은 문제 {pending}개 · 차례로 풀어요</div>}
+          <div className="w-full max-w-md rounded-2xl bg-space-900 border border-amber-300/30 p-5 shadow-[0_0_40px_rgba(251,191,36,0.2)]">
+            <div className="text-center text-base font-black text-amber-200">🚨 권리 수호 미션 #{missionNo}</div>
+            <div className="text-center text-[11px] text-white/55 mb-1">올바른 판단으로 시민을 지켜요! 정답 시 특수기술 발동 ✨</div>
+            <div className="flex items-center justify-center gap-1 mb-2">
+              <span className="text-[10px] text-white/50 mr-1">정의 게이지</span>
+              {[0, 1, 2].map((i) => <span key={i} className={`w-6 h-1.5 rounded-full ${i < mission ? 'bg-yellow-300' : 'bg-white/15'}`} />)}
+              {mission >= 2 && <span className="text-[10px] text-yellow-300 font-bold ml-1">다음 정답=필살기!</span>}
+            </div>
+            {pending > 1 && <div className="text-center text-[11px] text-white/50 mb-2">남은 미션 {pending}개</div>}
             <QuickAnswer key={quiz.id} problem={quiz} onResult={onQuizResult} />
           </div>
         </div>
