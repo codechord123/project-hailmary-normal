@@ -28,13 +28,13 @@ const R = 7
 const PW = 76
 const PH = 12
 const PADDLE_Y = H - 30
-const COLS = 10
-const ROWS = 8
-const BRICK_H = 14
+const COLS = 12
+const ROWS = 10
+const BRICK_H = 12
 const ITEM_VY = 1.9
 const MAX_BALLS = 6
 const TOTAL_LEVELS = 3
-const QUIZ_EVERY = 7 // 벽돌 7개 깰 때마다 문제 출제
+const QUIZ_EVERY = 5 // 벽돌 5개 깰 때마다 문제 출제(더 자주)
 const START_HEARTS = BALANCE.hearts
 
 const ITEM_EMOJI: Record<ItemType, string> = { quiz: '📝', points: '✨', expand: '⬌', slow: '🐢', life: '❤️', multi: '➕', fire: '🔥', bomb: '💣' }
@@ -54,7 +54,7 @@ const PATTERNS: ((r: number, c: number) => boolean)[] = [
   (r, c) => (r + c) % 2 === 0,                                      // 체커
   (r, c) => Math.abs(c - (COLS - 1) / 2) <= r,                      // 피라미드
   (_r, c) => c % 3 !== 1,                                          // 세로 틈
-  (r, c) => Math.abs(c - (COLS - 1) / 2) + Math.abs(r - (ROWS - 1) / 2) <= 5, // 다이아몬드
+  (r, c) => Math.abs(c - (COLS - 1) / 2) + Math.abs(r - (ROWS - 1) / 2) <= 6, // 다이아몬드
   (r, c) => r === 0 || r === ROWS - 1 || c === 0 || c === COLS - 1 || (r + c) % 2 === 0, // 액자+체커
 ]
 
@@ -132,7 +132,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     if (pat === prevPattern.current) pat = (pat + 1) % PATTERNS.length
     prevPattern.current = pat
     const fill = PATTERNS[pat]
-    const margin = 12, gap = 4
+    const margin = 10, gap = 3
     const bw = (W - margin * 2 - gap * (COLS - 1)) / COLS
     const list: Brick[] = []
     for (let r = 0; r < ROWS; r++) {
@@ -192,7 +192,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         setBestCombo((bc) => Math.max(bc, comboRef.current))
         addFloat(cx, cy, m > 1 ? `+${gain} x${m}` : `+${gain}`, m > 1 ? '#fde047' : '#fff')
       } else setScore((s) => s + BRICK[br.type].pts)
-      const dropChance = br.type === 'explosive' || br.type === 'steel' ? 0.5 : chained ? 0.1 : 0.22
+      const dropChance = br.type === 'explosive' || br.type === 'steel' ? 0.3 : chained ? 0.05 : 0.12
       if (Math.random() < dropChance)
         items.current.push({ x: cx, y: br.y, type: ITEM_BAG[Math.floor(Math.random() * ITEM_BAG.length)] })
       if (br.type === 'explosive') {
