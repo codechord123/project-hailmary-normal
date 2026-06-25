@@ -98,6 +98,21 @@ export function UnitHome() {
       </div>
 
       <div className="w-full max-w-xl flex flex-col gap-5">
+        {/* 오답 복습 — 틀린 문제가 있으면 눈에 띄게 안내 */}
+        {prog.wrongIds.length > 0 && (
+          <Link
+            to={`/unit/${unit.id}/wrong`}
+            className="flex items-center gap-3 rounded-2xl border border-rose-300/40 bg-rose-400/10 hover:bg-rose-400/20 transition p-4"
+          >
+            <span className="text-3xl">📝</span>
+            <span className="flex flex-col flex-1">
+              <span className="text-sm font-bold text-rose-100">틀린 문제 {prog.wrongIds.length}개 복습하기</span>
+              <span className="text-[11px] text-rose-200/70">한 번 더 풀면 오답 노트에서 사라져요 · 가장 효과적인 학습!</span>
+            </span>
+            <span className="text-rose-200">→</span>
+          </Link>
+        )}
+
         {/* 모험 시작 — 챕터(항해) */}
         <section className="flex flex-col gap-2">
           <h2 className="text-sm font-bold text-white/70">{startLabel}</h2>
