@@ -34,7 +34,7 @@ const BRICK_H = 12
 const ITEM_VY = 1.9
 const MAX_BALLS = 6
 const TOTAL_LEVELS = 3
-const QUIZ_EVERY = 5 // 벽돌 5개 깰 때마다 문제 출제(더 자주)
+const QUIZ_EVERY = 3 // 벽돌 3개 깰 때마다 문제 출제(자주)
 const START_HEARTS = BALANCE.hearts
 
 const ITEM_EMOJI: Record<ItemType, string> = { quiz: '📝', points: '✨', expand: '⬌', slow: '🐢', life: '❤️', multi: '➕', fire: '🔥', bomb: '💣' }
@@ -176,7 +176,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     const ctx = canvasRef.current?.getContext('2d')
     let frame = 0
 
-    const destroyBrick = (br: Brick, chained = false) => {
+    const destroyBrick = (br: Brick, chained = false, suppressChain = false) => {
       if (br.hp <= 0) return
       br.hp = 0
       bricksLeftRef.current -= 1
@@ -192,10 +192,11 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         setBestCombo((bc) => Math.max(bc, comboRef.current))
         addFloat(cx, cy, m > 1 ? `+${gain} x${m}` : `+${gain}`, m > 1 ? '#fde047' : '#fff')
       } else setScore((s) => s + BRICK[br.type].pts)
-      const dropChance = br.type === 'explosive' || br.type === 'steel' ? 0.3 : chained ? 0.05 : 0.12
+      const dropChance = br.type === 'explosive' || br.type === 'steel' ? 0.15 : chained ? 0.02 : 0.05
       if (Math.random() < dropChance)
         items.current.push({ x: cx, y: br.y, type: ITEM_BAG[Math.floor(Math.random() * ITEM_BAG.length)] })
-      if (br.type === 'explosive') {
+      // 폭발 연쇄 — 폭탄(suppressChain)으로 파괴될 땐 연쇄 안 일으킴
+      if (br.type === 'explosive' && !suppressChain) {
         fx.shake(8); fx.freeze(4); fx.screenFlash(0.25, '251,146,60'); sfx.crit()
         for (const o of bricks.current) {
           if (o.hp <= 0 || o === br) continue
@@ -209,11 +210,11 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
       if (alive.length === 0) return
       const t = alive[Math.floor(Math.random() * alive.length)]
       const cx = t.x + t.w / 2, cy = t.y + BRICK_H / 2
-      fx.shake(5); fx.freeze(2); fx.screenFlash(0.18, '244,63,94'); sfx.crit()
-      // 좁은 범위만 파괴 — 대상 + 바로 인접 정도
+      fx.shake(4); fx.freeze(2); fx.screenFlash(0.15, '244,63,94'); sfx.crit()
+      // 아주 좁은 범위만 + 폭발 연쇄 억제(폭탄이 연쇄로 커지지 않게)
       for (const o of bricks.current) {
         if (o.hp <= 0) continue
-        if (Math.hypot((o.x + o.w / 2) - cx, (o.y + BRICK_H / 2) - cy) < 26) destroyBrick(o, true)
+        if (Math.hypot((o.x + o.w / 2) - cx, (o.y + BRICK_H / 2) - cy) < 18) destroyBrick(o, true, true)
       }
     }
 
