@@ -34,13 +34,13 @@ const BRICK_H = 12
 const ITEM_VY = 1.9
 const MAX_BALLS = 6
 const TOTAL_LEVELS = 3
-const QUIZ_EVERY = 3 // 벽돌 3개 깰 때마다 문제 출제(자주)
+const QUIZ_EVERY = 4 // 벽돌 4개(연쇄 포함)마다 문제 출제
 const PADDLE_SPEED = 8 // 키보드 이동 속도(프레임당)
 const START_HEARTS = BALANCE.hearts
 
 const ITEM_EMOJI: Record<ItemType, string> = { quiz: '📝', points: '✨', expand: '⬌', slow: '🐢', life: '❤️', multi: '➕', fire: '🔥', bomb: '💣' }
 // 문제(📝)는 아이템으로 떨어지지 않고 별도 큐에 쌓인다. 폭탄은 1개로 빈도↓
-const ITEM_BAG: ItemType[] = ['points', 'points', 'expand', 'expand', 'slow', 'slow', 'life', 'multi', 'multi', 'fire', 'fire', 'bomb']
+const ITEM_BAG: ItemType[] = ['points', 'points', 'expand', 'expand', 'slow', 'slow', 'life', 'multi', 'multi', 'fire', 'fire']
 
 const BRICK: Record<BrickType, { hp: number; pts: number; emoji?: string }> = {
   normal: { hp: 1, pts: 10 },
@@ -186,7 +186,6 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
       fx.burst(cx, cy, { count: chained ? 9 : 14, color: [`hsl(${br.hue} 90% 65%)`, `hsl(${br.hue} 90% 82%)`, '#fff'], speed: 3.4, gravity: 0.16, size: 3 })
       if (!chained) {
         comboRef.current++
-        destroyedRef.current++
         const m = mult()
         const gain = BRICK[br.type].pts * m
         setScore((s) => s + gain)
@@ -194,7 +193,8 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         setBestCombo((bc) => Math.max(bc, comboRef.current))
         addFloat(cx, cy, m > 1 ? `+${gain} x${m}` : `+${gain}`, m > 1 ? '#fde047' : '#fff')
       } else setScore((s) => s + BRICK[br.type].pts)
-      const dropChance = br.type === 'explosive' || br.type === 'steel' ? 0.15 : chained ? 0.02 : 0.05
+      destroyedRef.current++ // 연쇄·일반 모두 문제 카운터에 반영 → 문제가 더 자주
+      const dropChance = br.type === 'explosive' || br.type === 'steel' ? 0.1 : chained ? 0 : 0.03
       if (Math.random() < dropChance)
         items.current.push({ x: cx, y: br.y, type: ITEM_BAG[Math.floor(Math.random() * ITEM_BAG.length)] })
       // 폭발 연쇄 — 폭탄(suppressChain)으로 파괴될 땐 연쇄 안 일으킴
