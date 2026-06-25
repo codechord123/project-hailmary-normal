@@ -192,7 +192,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         setBestCombo((bc) => Math.max(bc, comboRef.current))
         addFloat(cx, cy, m > 1 ? `+${gain} x${m}` : `+${gain}`, m > 1 ? '#fde047' : '#fff')
       } else setScore((s) => s + BRICK[br.type].pts)
-      const dropChance = br.type === 'explosive' || br.type === 'steel' ? 1 : chained ? 0.3 : 0.6
+      const dropChance = br.type === 'explosive' || br.type === 'steel' ? 0.5 : chained ? 0.1 : 0.22
       if (Math.random() < dropChance)
         items.current.push({ x: cx, y: br.y, type: ITEM_BAG[Math.floor(Math.random() * ITEM_BAG.length)] })
       if (br.type === 'explosive') {
@@ -209,11 +209,11 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
       if (alive.length === 0) return
       const t = alive[Math.floor(Math.random() * alive.length)]
       const cx = t.x + t.w / 2, cy = t.y + BRICK_H / 2
-      fx.shake(7); fx.freeze(3); fx.screenFlash(0.22, '244,63,94'); sfx.crit()
-      // 작은 범위만 파괴(약화) — 폭발 벽돌보다 좁게
+      fx.shake(5); fx.freeze(2); fx.screenFlash(0.18, '244,63,94'); sfx.crit()
+      // 좁은 범위만 파괴 — 대상 + 바로 인접 정도
       for (const o of bricks.current) {
         if (o.hp <= 0) continue
-        if (Math.hypot((o.x + o.w / 2) - cx, (o.y + BRICK_H / 2) - cy) < 40) destroyBrick(o, true)
+        if (Math.hypot((o.x + o.w / 2) - cx, (o.y + BRICK_H / 2) - cy) < 26) destroyBrick(o, true)
       }
     }
 
