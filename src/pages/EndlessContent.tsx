@@ -104,7 +104,7 @@ export function EndlessContent() {
       <div className="text-xs text-white/60">🌌 끝없는 도전 · 푼 문제 {solved}</div>
 
       <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
-        <QuickAnswer key={idx} problem={problem} onResult={handleResult} />
+        <QuickAnswer key={idx} problem={problem} onResult={handleResult} feedback={false} />
       </div>
     </div>
   )

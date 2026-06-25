@@ -123,7 +123,7 @@ export function TimeAttackContent() {
       </div>
 
       <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
-        <QuickAnswer key={idx} problem={problem} onResult={handleResult} />
+        <QuickAnswer key={idx} problem={problem} onResult={handleResult} feedback={false} />
       </div>
     </div>
   )
