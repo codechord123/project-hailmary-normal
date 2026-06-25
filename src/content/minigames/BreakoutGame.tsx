@@ -125,8 +125,8 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     const lv = levelRef.current
     if (row < 2) return Math.random() < 0.32 + lv * 0.06 ? 'steel' : 'tough'
     const r = Math.random()
-    if (r < 0.16 + lv * 0.04) return 'explosive'
-    if (r < 0.28 + lv * 0.05) return 'steel'
+    if (r < 0.04 + lv * 0.01) return 'explosive'
+    if (r < 0.16 + lv * 0.04) return 'steel'
     return 'normal'
   }
   const initBricks = () => {
@@ -146,16 +146,16 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     }
     bricks.current = list
     // 특수 벽돌 최소 보장 — 맵마다 폭발·강철이 확실히 등장하도록 강제 변환
-    const ensure = (type: BrickType, frac: number) => {
-      const want = Math.max(3, Math.round(list.length * frac))
+    const ensure = (type: BrickType, frac: number, min: number) => {
+      const want = Math.max(min, Math.round(list.length * frac))
       let have = list.filter((b) => b.type === type).length
       for (const b of shuffle(list.filter((b) => b.type === 'normal'))) {
         if (have >= want) break
         b.type = type; b.hp = BRICK[type].hp; have++
       }
     }
-    ensure('explosive', 0.18)
-    ensure('steel', 0.15)
+    ensure('explosive', 0.05, 2) // 폭발 벽돌은 드물게
+    ensure('steel', 0.12, 3)
     bricksLeftRef.current = list.length
     setBricksLeft(list.length)
   }
@@ -202,7 +202,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         fx.shake(8); fx.freeze(4); fx.screenFlash(0.25, '251,146,60'); sfx.crit()
         for (const o of bricks.current) {
           if (o.hp <= 0 || o === br) continue
-          if (Math.hypot((o.x + o.w / 2) - cx, (o.y + BRICK_H / 2) - cy) < 56) destroyBrick(o, true)
+          if (Math.hypot((o.x + o.w / 2) - cx, (o.y + BRICK_H / 2) - cy) < 36) destroyBrick(o, true)
         }
       }
     }
