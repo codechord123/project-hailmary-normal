@@ -35,6 +35,7 @@ const ITEM_VY = 1.9
 const MAX_BALLS = 6
 const TOTAL_LEVELS = 3
 const QUIZ_EVERY = 3 // 벽돌 3개 깰 때마다 문제 출제(자주)
+const PADDLE_SPEED = 8 // 키보드 이동 속도(프레임당)
 const START_HEARTS = BALANCE.hearts
 
 const ITEM_EMOJI: Record<ItemType, string> = { quiz: '📝', points: '✨', expand: '⬌', slow: '🐢', life: '❤️', multi: '➕', fire: '🔥', bomb: '💣' }
@@ -81,6 +82,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
   const paddleX = useRef(W / 2)
+  const keysRef = useRef({ left: false, right: false })
   const pwRef = useRef(PW)
   const expandFrames = useRef(0)
   const slowFrames = useRef(0)
@@ -244,6 +246,12 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
       const sim = fx.tick()
       if (runningRef.current && !pausedRef.current && sim) {
         if (paddleHit.current > 0) paddleHit.current--
+        // 키보드 패들 이동(누르고 있는 동안 매 프레임)
+        const ks = keysRef.current
+        if (ks.left !== ks.right) {
+          const dir = ks.right ? 1 : -1
+          paddleX.current = Math.max(pwRef.current / 2, Math.min(W - pwRef.current / 2, paddleX.current + dir * PADDLE_SPEED))
+        }
         if (expandFrames.current > 0 && --expandFrames.current === 0) { pwRef.current = PW; setBuffs((b) => ({ ...b, expand: false })) }
         if (slowFrames.current > 0 && --slowFrames.current === 0) { slowMul.current = 1; setBuffs((b) => ({ ...b, slow: false })) }
         if (fireFrames.current > 0 && --fireFrames.current === 0) setBuffs((b) => ({ ...b, fire: false }))
@@ -410,6 +418,21 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // 키보드 조작 — ← →(또는 A/D)로 패들 이동
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') { keysRef.current.left = true; e.preventDefault() }
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') { keysRef.current.right = true; e.preventDefault() }
+    }
+    const up = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') keysRef.current.left = false
+      if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') keysRef.current.right = false
+    }
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', up)
+    return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up) }
+  }, [])
+
   if (quizPool.length === 0) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-white/70">
@@ -521,7 +544,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         className="mt-1 w-full rounded-xl border-2 border-white/15 bg-black touch-none shadow-[0_0_30px_rgba(59,130,246,0.15)]"
         style={{ aspectRatio: `${W} / ${H}` }}
       />
-      <p className="mt-1 text-center text-[11px] text-white/40">✨점수 ⬌확장 🐢슬로우 ❤️생명 ➕멀티볼 🔥파이어볼 💣폭탄 · 💥🔩 특수 벽돌!</p>
+      <p className="mt-1 text-center text-[11px] text-white/40">🖱️ 끌기 또는 ⌨️ ← → (A/D) 로 이동 · ✨점수 ⬌확장 🐢슬로우 ❤️생명 ➕멀티볼 🔥파이어볼 💣폭탄</p>
       {intro && <p className="text-center text-[11px] text-white/30">{intro}</p>}
 
       {quiz && (
