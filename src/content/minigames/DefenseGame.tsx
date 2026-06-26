@@ -179,6 +179,8 @@ export function DefenseGame({ problems, title, intro, onClear, onExit, onAnswer 
     setScore(0)
     setFeedback(null)
     setMcqPick([])
+    setKillAnim(null)
+    setFlash(null)
     setStatus('play')
   }
 

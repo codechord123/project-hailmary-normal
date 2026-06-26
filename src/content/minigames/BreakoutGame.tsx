@@ -452,7 +452,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     missionRef.current = 0; setMission(0); missionNoRef.current = 0; setMissionNo(0)
     initBricks(); spawnBall(); items.current = []; floats.current = []; comboRef.current = 0
     quizQueue.current = shuffle(quizPool)
-    pwRef.current = PW; expandFrames.current = 0; slowFrames.current = 0; fireFrames.current = 0; slowMul.current = 1
+    pwRef.current = PW; expandFrames.current = 0; slowFrames.current = 0; fireFrames.current = 0; slowMul.current = 1; paddleHit.current = 0
     setBuffs({ expand: false, slow: false, fire: false })
     pausedRef.current = false; runningRef.current = true
     lives.reset(); setScore(0); setCombo(0); setBestCombo(0); setPending(0); setQuiz(null); setStatus('play')

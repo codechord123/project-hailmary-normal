@@ -98,7 +98,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
   const stars = starsFromMistakes(mistakes)
 
   const restart = () => {
-    setRoundIdx(0); setAssigned({}); setWrong(null); setSelected(null); lives.reset()
+    setRoundIdx(0); setAssigned({}); setWrong(null); setSelected(null); setRevealCat(null); lives.reset()
     setMistakes(0); setCombo(0); setTimeLeft(budget); setStatus('play')
   }
 
