@@ -129,7 +129,7 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
       onAward?.(true)
       if (nextMatched.size >= cards.length) {
         if (roundIdx + 1 >= rounds.length) { setStatus('clear'); sfx.clear() }
-        else { setTimeout(() => { setRoundIdx((r) => r + 1); setMatched(new Set()); setFlipped([]) }, 500) }
+        else { setTimeout(() => { setRoundIdx((r) => r + 1); setMatched(new Set()); setFlipped([]); lives.reset() }, 500) } // 스테이지마다 하트 5개로 새로
       } else sfx.correct(c)
     } else {
       // 실패 — 잠시 보여주고 닫기 (그동안 입력 잠금)
