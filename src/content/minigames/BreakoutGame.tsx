@@ -178,7 +178,6 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     levelRef.current = 1; setLevel(1)
     initBricks(); spawnBall()
     quizQueue.current = shuffle(quizPool)
-    const ctx = canvasRef.current?.getContext('2d')
     let frame = 0
 
     const destroyBrick = (br: Brick, chained = false, suppressChain = false) => {
@@ -246,6 +245,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     const step = () => {
       try {
       frame++
+      const ctx = canvasRef.current?.getContext('2d') // 매 프레임 현재 캔버스 컨텍스트 확보(다시하기 후 검은 화면 방지)
       const sim = fx.tick()
       if (runningRef.current && !pausedRef.current && sim) {
         if (paddleHit.current > 0) paddleHit.current--

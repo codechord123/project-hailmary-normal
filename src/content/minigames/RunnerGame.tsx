@@ -105,10 +105,10 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
   useEffect(() => {
     if (quizPool.length === 0) return
     queue.current = shuffle(quizPool)
-    const ctx = canvasRef.current?.getContext('2d')
     let last = performance.now()
 
     const step = (t: number) => {
+      const ctx = canvasRef.current?.getContext('2d') // 매 프레임 현재 캔버스 확보(다시하기 후 검은 화면 방지)
       const dt = Math.min(48, t - last)
       last = t
       const sim = fx.tick()

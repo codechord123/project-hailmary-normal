@@ -25,7 +25,7 @@ interface Card {
 }
 
 const PAIRS_PER_ROUND = 8 // 한 라운드 8쌍(4×4, 16장)
-const START_HEARTS = BALANCE.hearts
+const START_HEARTS = BALANCE.hearts + 2 // 메모리는 한 라운드 8쌍이라 하트를 넉넉히(최대 5)
 
 const shuffle = <T,>(arr: T[]): T[] => {
   const a = [...arr]
