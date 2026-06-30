@@ -56,6 +56,12 @@ describe('법과 인권 — 정답 판정·미니게임 데이터 적합성', ()
     expect(withExplain / all.length).toBeGreaterThanOrEqual(0.9)
   })
 
+  it('모든 mcq·ox 문항에 해설(explain)이 있다 — 게임 내 즉시 학습용', () => {
+    const quizable = all.filter((p) => p.kind === 'mcq' || p.kind === 'ox')
+    const missing = quizable.filter((p) => !explainFor(p)).map((p) => p.id)
+    expect(missing).toEqual([])
+  })
+
   it('응용·심화(시나리오 기반) 문항이 충분히 들어 있다', () => {
     const scenarioProblems = all.filter((p) => p.scenario && p.scenario.length > 10)
     // 생활 장면 기반 적용형 문항이 30개 이상

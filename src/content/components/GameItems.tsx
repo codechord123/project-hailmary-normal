@@ -79,7 +79,7 @@ export function HeartBar({ hearts, max, shielded }: { hearts: number; max: numbe
   return (
     <span className="text-rose-300">
       {shielded && <span className="mr-1">🛡️</span>}
-      {'❤️'.repeat(hearts)}{'🤍'.repeat(Math.max(0, max - hearts))}
+      {'❤️'.repeat(Math.max(0, hearts))}{'🤍'.repeat(Math.max(0, max - Math.max(0, hearts)))}
     </span>
   )
 }

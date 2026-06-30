@@ -1,4 +1,4 @@
-import { motion, useAnimationControls } from 'framer-motion'
+import { motion, useAnimationControls, useReducedMotion } from 'framer-motion'
 import { useEffect, type ReactNode } from 'react'
 
 interface Props {
@@ -14,7 +14,9 @@ interface Props {
  */
 export function ScreenShake({ shake, children, intensity = 8 }: Props) {
   const controls = useAnimationControls()
+  const reduce = useReducedMotion()
   useEffect(() => {
+    if (reduce) return // 움직임 최소화 설정 존중
     if (shake > 0) {
       controls.start({
         x: [0, -intensity, intensity, -intensity * 0.6, intensity * 0.6, 0],

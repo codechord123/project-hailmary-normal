@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import type { ContentProblem } from '@/content/types'
 import { sfx } from '@/lib/sfx'
@@ -75,6 +75,9 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
   const [status, setStatus] = useState<'play' | 'clear' | 'over'>('play')
   const juice = useGameJuice()
   const reduce = useReducedMotion()
+  const timers = useRef<number[]>([])
+  const after = (ms: number, fn: () => void) => { timers.current.push(window.setTimeout(fn, ms)) }
+  useEffect(() => () => { timers.current.forEach((t) => clearTimeout(t)) }, [])
 
   if (rounds.length === 0) {
     return (
@@ -129,7 +132,7 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
       onAward?.(true)
       if (nextMatched.size >= cards.length) {
         if (roundIdx + 1 >= rounds.length) { setStatus('clear'); sfx.clear() }
-        else { setTimeout(() => { setRoundIdx((r) => r + 1); setMatched(new Set()); setFlipped([]); lives.reset() }, 500) } // 스테이지마다 하트 5개로 새로
+        else { after(500, () => { setRoundIdx((r) => r + 1); setMatched(new Set()); setFlipped([]); lives.reset() }) } // 스테이지마다 하트 5개로 새로
       } else sfx.correct(c)
     } else {
       // 실패 — 잠시 보여주고 닫기 (그동안 입력 잠금)
@@ -139,7 +142,7 @@ export function MemoryGame({ problems, title, intro, onClear, onExit, onAward }:
       onAward?.(false)
       const dead = lives.lose()
       setBusy(true)
-      setTimeout(() => { setFlipped([]); setBusy(false); if (dead) setStatus('over') }, 800)
+      after(800, () => { setFlipped([]); setBusy(false); if (dead) setStatus('over') })
     }
   }
 

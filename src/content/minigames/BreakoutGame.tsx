@@ -600,12 +600,12 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         className="mt-1 w-full rounded-xl border-2 border-white/15 bg-black touch-none shadow-[0_0_30px_rgba(59,130,246,0.15)]"
         style={{ aspectRatio: `${W} / ${H}` }}
       />
-      <p className="mt-1 text-center text-[11px] text-white/40">🖱️ 끌기 또는 ⌨️ ← → (A/D) 로 이동 · ✨점수 ⬌확장 🐢슬로우 ❤️생명 ➕멀티볼 🔥파이어볼 💣폭탄</p>
+      <p className="mt-1 text-center text-[11px] text-white/60">🖱️ 끌기 또는 ⌨️ ← → (A/D) 로 이동 · ✨점수 ⬌확장 🐢슬로우 ❤️생명 ➕멀티볼 🔥파이어볼</p>
       {intro && <p className="text-center text-[11px] text-white/30">{intro}</p>}
 
       {quiz && (
         <div className="fixed inset-0 z-40 bg-black/70 flex items-center justify-center px-4">
-          <div className="w-full max-w-md rounded-2xl bg-space-900 border border-amber-300/30 p-5 shadow-[0_0_40px_rgba(251,191,36,0.2)]">
+          <div className="w-full max-w-md max-h-[92vh] overflow-y-auto rounded-2xl bg-space-900 border border-amber-300/30 p-5 shadow-[0_0_40px_rgba(251,191,36,0.2)]">
             <div className="text-center text-base font-black text-amber-200">🚨 권리 수호 미션 #{missionNo}</div>
             <div className="text-center text-[11px] text-white/55 mb-1">올바른 판단으로 시민을 지켜요! 정답 시 특수기술 발동 ✨</div>
             <div className="flex items-center justify-center gap-1 mb-2">

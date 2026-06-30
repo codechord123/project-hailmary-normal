@@ -150,6 +150,15 @@ export function BossGame({
     setStatus('play')
   }
 
+  if (problems.length === 0 || !problem) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-white/70">
+        <p>이 챕터에는 보스전에 쓸 문제가 없어요.</p>
+        <button onClick={onExit} className="underline">← 나가기</button>
+      </div>
+    )
+  }
+
   if (status === 'clear') {
     return (
       <GameResult emoji="🎉" title={`${bossName}을(를) 무찔렀어요!`} confetti

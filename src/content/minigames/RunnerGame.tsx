@@ -174,10 +174,18 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
                 fx.burst(e.x, e.y, { count: 14, color: ['#38bdf8', '#fbbf24', '#fff'], speed: 3.5, shape: 'spark' })
                 fx.shake(5)
               } else if (invulnRef.current <= 0) {
-                e.hit = true; invulnRef.current = 70; setCombo(0)
-                sfx.wrong(); fx.shake(15); fx.freeze(5); fx.screenFlash(0.5, '244,63,94')
-                fx.burst(carX.current, CAR_Y, { count: 22, color: ['#fb7185', '#fbbf24', '#fff'], speed: 4, gravity: 0.18, shape: 'spark' })
-                if (lives.lose()) { runningRef.current = false; setStatus('over') }
+                e.hit = true; invulnRef.current = 70
+                const wasShielded = lives.shielded
+                const dead = lives.lose()
+                if (wasShielded) {
+                  // 보호막이 충돌을 막음 — 콤보 유지, 가벼운 연출
+                  sfx.powerUp(); fx.shake(6); addFloat(carX.current, CAR_Y - 12, '🛡️ 보호!', '#38bdf8')
+                } else {
+                  setCombo(0)
+                  sfx.wrong(); fx.shake(15); fx.freeze(5); fx.screenFlash(0.5, '244,63,94')
+                  fx.burst(carX.current, CAR_Y, { count: 22, color: ['#fb7185', '#fbbf24', '#fff'], speed: 4, gravity: 0.18, shape: 'spark' })
+                }
+                if (dead) { runningRef.current = false; setStatus('over') }
               }
             }
           }
@@ -246,6 +254,7 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', ' '].includes(e.key)) e.preventDefault() // 페이지 스크롤 방지
       if (e.key === 'ArrowLeft') nudge(-26)
       if (e.key === 'ArrowRight') nudge(26)
       if (e.key === ' ' || e.key === 'ArrowUp') activateBoost()
@@ -359,7 +368,7 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
 
       {quiz && (
         <div className="fixed inset-0 z-40 bg-black/70 flex items-center justify-center px-4">
-          <div className="w-full max-w-md rounded-2xl bg-space-900 border border-white/15 p-5">
+          <div className="w-full max-w-md max-h-[92vh] overflow-y-auto rounded-2xl bg-space-900 border border-white/15 p-5">
             <div className="text-center text-sm font-bold text-amber-200 mb-2">📝 문제 카드!</div>
             <QuickAnswer key={quiz.id} problem={quiz} onResult={onQuizResult} />
           </div>
