@@ -13,14 +13,14 @@ export function shuffle<T>(arr: T[]): T[] {
 
 /**
  * 약점(오답·저정답률) 문제를 앞쪽에 가중 배치한 출제 풀.
- * matching 문제는 객관식/OX 모드에 부적합하므로 제외.
+ * QuickAnswer는 mcq/ox만 렌더 → matching·order는 제외(안 그러면 답 UI가 없어 진행 불가).
  * 약점이 없으면 일반 셔플로 폴백.
  */
 export function buildWeightedPool(
   problems: ContentProblem[],
   prog: UnitProgress,
 ): ContentProblem[] {
-  const base = shuffle(problems.filter((p) => p.kind !== 'matching'))
+  const base = shuffle(problems.filter((p) => p.kind === 'mcq' || p.kind === 'ox'))
   const weak = base.filter((p) => isWeak(prog, p.id))
   return weak.length ? [...shuffle(weak), ...base] : base
 }

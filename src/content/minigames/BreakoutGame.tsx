@@ -445,7 +445,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
     )
   }
 
-  const starCount = starsFromHearts(lives.hearts, lives.startHearts)
+  const starCount = starsFromHearts(lives.lowestHearts, lives.startHearts)
 
   const restart = () => {
     levelRef.current = 1; setLevel(1); prevPattern.current = -1; destroyedRef.current = 0; pendingRef.current = 0
@@ -579,7 +579,7 @@ export function BreakoutGame({ problems, title, intro, onClear, onExit, onAnswer
         <div className="flex-1">
           <GameItemBar items={[
             { id: 'shield', icon: '🛡️ 보호막', label: '공 놓침 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
-            { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+            { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife, disabled: lives.hearts >= lives.MAX_HEARTS },
           ]} />
         </div>
       </div>

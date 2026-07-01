@@ -77,7 +77,7 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
   }
 
   const goal = Math.min(GOAL, Math.max(3, pool.length))
-  const stars = starsFromHearts(lives.hearts, lives.startHearts)
+  const stars = starsFromHearts(lives.lowestHearts, lives.startHearts)
   const answerIdx = problem.correctIndexes[0]
 
   const advance = () => {
@@ -168,7 +168,7 @@ export function DetectiveGame({ problems, title, intro, onClear, onExit, onAnswe
       <div className="mt-2">
         <GameItemBar items={[
           { id: 'shield', icon: '🛡️ 보호막', label: '오답 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
-          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife, disabled: lives.hearts >= lives.MAX_HEARTS },
         ]} />
       </div>
 

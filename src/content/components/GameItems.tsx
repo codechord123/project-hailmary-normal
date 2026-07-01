@@ -18,8 +18,9 @@ export function useLives(base: number) {
   const [hearts, setHeartsState] = useState(start)
   const shieldRef = useRef(false)
   const [shielded, setShielded] = useState(false)
+  const lowestRef = useRef(start) // 게임 중 도달한 최저 하트(별점=피격 최소화 기준, 회복/구매로 부풀지 않게)
 
-  const set = (n: number) => { heartsRef.current = n; setHeartsState(n) }
+  const set = (n: number) => { heartsRef.current = n; setHeartsState(n); if (n < lowestRef.current) lowestRef.current = n }
 
   const lose = (): boolean => {
     if (shieldRef.current) { shieldRef.current = false; setShielded(false); return false }
@@ -28,9 +29,9 @@ export function useLives(base: number) {
   }
   const arm = () => { shieldRef.current = true; setShielded(true) }
   const addLife = () => set(Math.min(MAX_HEARTS, heartsRef.current + 1))
-  const reset = () => { shieldRef.current = false; setShielded(false); set(start) }
+  const reset = () => { shieldRef.current = false; setShielded(false); lowestRef.current = start; set(start) }
 
-  return { hearts, shielded, lose, arm, addLife, reset, MAX_HEARTS, startHearts: start }
+  return { hearts, shielded, lose, arm, addLife, reset, MAX_HEARTS, startHearts: start, get lowestHearts() { return lowestRef.current } }
 }
 
 export interface ShopItem {

@@ -78,7 +78,7 @@ export function SequenceGame({ problems, title, intro, onClear, onExit, onAnswer
   }
 
   const goal = Math.min(GOAL, Math.max(3, pool.length))
-  const stars = starsFromHearts(lives.hearts, lives.startHearts)
+  const stars = starsFromHearts(lives.lowestHearts, lives.startHearts)
 
   const loadNext = () => {
     const np = nextOne()
@@ -102,6 +102,7 @@ export function SequenceGame({ problems, title, intro, onClear, onExit, onAnswer
     const correct = next.every((v, i) => v === i)
     onAnswer?.(problem.id, correct)
     if (correct) {
+      setReveal(true) // 전환 대기 중 undo·재클릭으로 재채점되는 것 방지(입력 잠금)
       const c = combo + 1
       sfx.correct(c)
       setCombo(c)
@@ -176,7 +177,7 @@ export function SequenceGame({ problems, title, intro, onClear, onExit, onAnswer
       <div className="mt-2">
         <GameItemBar items={[
           { id: 'shield', icon: '🛡️ 보호막', label: '실수 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
-          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife, disabled: lives.hearts >= lives.MAX_HEARTS },
         ]} />
       </div>
 

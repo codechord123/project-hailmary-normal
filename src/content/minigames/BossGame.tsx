@@ -162,9 +162,9 @@ export function BossGame({
   if (status === 'clear') {
     return (
       <GameResult emoji="🎉" title={`${bossName}을(를) 무찔렀어요!`} confetti
-        stars={starsFromHearts(lives.hearts, lives.startHearts)}
+        stars={starsFromHearts(lives.lowestHearts, lives.startHearts)}
         lines={[`최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(lives.hearts, lives.startHearts) }) }}
+        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(lives.lowestHearts, lives.startHearts) }) }}
         secondary={{ label: '다시 하기', onClick: restart }} />
     )
   }
@@ -190,7 +190,7 @@ export function BossGame({
       <div className="mt-2">
         <GameItemBar items={[
           { id: 'shield', icon: '🛡️ 보호막', label: '반격 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
-          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife, disabled: lives.hearts >= lives.MAX_HEARTS },
         ]} />
       </div>
 

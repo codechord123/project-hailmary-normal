@@ -193,7 +193,7 @@ export function SortingGame({ problems, title, intro, onClear, onExit, onAward }
       <div className="mt-2">
         <GameItemBar items={[
           { id: 'shield', icon: '🛡️ 보호막', label: '실수 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
-          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+          { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife, disabled: lives.hearts >= lives.MAX_HEARTS },
         ]} />
       </div>
 

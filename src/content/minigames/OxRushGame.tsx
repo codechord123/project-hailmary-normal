@@ -122,9 +122,9 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
   if (status === 'clear') {
     return (
       <GameResult emoji="⚡" title="번개처럼 통과!" confetti
-        stars={starsFromHearts(lives.hearts, lives.startHearts)}
+        stars={starsFromHearts(lives.lowestHearts, lives.startHearts)}
         lines={[`정답 ${correctCount}`, `최고 콤보 ${bestCombo}`, `점수 ${score}`]}
-        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(lives.hearts, lives.startHearts) }) }}
+        primary={{ label: '완료', onClick: () => onClear({ score, bestCombo, stars: starsFromHearts(lives.lowestHearts, lives.startHearts) }) }}
         secondary={{ label: '다시 하기', onClick: restart }} />
     )
   }
@@ -166,7 +166,7 @@ export function OxRushGame({ problems, title, intro, onClear, onExit, onAnswer }
       <div className="mt-1">
         <GameItemBar items={[
           { id: 'shield', icon: '🛡️', label: '오답 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
-          { id: 'life', icon: '❤️', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+          { id: 'life', icon: '❤️', label: '생명 +1', cost: 15, onBuy: lives.addLife, disabled: lives.hearts >= lives.MAX_HEARTS },
         ]} />
       </div>
 

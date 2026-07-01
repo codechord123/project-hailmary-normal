@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { findUnit } from '@/content/registry'
 import { useUnitProgress, useProgress, weaknessScore } from '@/content/progress'
@@ -37,10 +37,20 @@ export function WrongNotesContent() {
     const all = unit.chapters.flatMap((c) => c.problems)
     return prog.wrongIds
       .map((id) => all.find((p) => p.id === id))
-      .filter((p): p is ContentProblem => Boolean(p))
+      .filter((p): p is ContentProblem => p != null && p.kind !== 'order') // order는 카드로 못 풂 → 제외
       .sort((a, b) => weaknessScore(prog, a.id) - weaknessScore(prog, b.id))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [unit])
+
+  // order(순서) 문제는 카드로 복습 불가 → 노트에서 자동 정리(타임라인 게임에서 재연습)
+  useEffect(() => {
+    if (!unit) return
+    const all = unit.chapters.flatMap((c) => c.problems)
+    for (const id of prog.wrongIds) {
+      if (all.find((p) => p.id === id)?.kind === 'order') removeWrong(unit.id, id)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const [idx, setIdx] = useState(0)
   const [attempt, setAttempt] = useState(0) // 같은 문제 재출제(보기 재배치) 트리거

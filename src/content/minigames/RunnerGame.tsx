@@ -147,6 +147,7 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
         }
 
         for (const e of ents.current) {
+          if (pausedRef.current) break // 카드 획득 등으로 방금 일시정지되면 남은 충돌 판정 중단
           e.y += e.kind === 'card' || e.kind === 'coin' ? speed * 0.85 : speed
           if (e.kind === 'mover') {
             e.x += e.vx
@@ -273,7 +274,7 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
     )
   }
 
-  const stars = starsFromHearts(lives.hearts, lives.startHearts)
+  const stars = starsFromHearts(lives.lowestHearts, lives.startHearts)
 
   const restart = () => {
     ents.current = []; floats.current = []; carX.current = W / 2; prevCarX.current = W / 2
@@ -334,7 +335,7 @@ export function RunnerGame({ problems, title, intro, onClear, onExit, onAnswer }
         <div className="flex-1">
           <GameItemBar items={[
             { id: 'shield', icon: '🛡️ 보호막', label: '충돌 1회 무효', cost: 8, onBuy: lives.arm, disabled: lives.shielded },
-            { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife },
+            { id: 'life', icon: '❤️ 생명', label: '생명 +1', cost: 15, onBuy: lives.addLife, disabled: lives.hearts >= lives.MAX_HEARTS },
           ]} />
         </div>
       </div>
